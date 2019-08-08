@@ -1,3 +1,5 @@
+# TODO: Breaks down in case of quaternions, i.e. free 3D bodies or ball joints.
+
 import mujoco_py as mj
 import numpy as np
 
@@ -9,7 +11,7 @@ nwarmup = 3
 eps = 1e-6
 
 
-def state_ctrl_dynamics_gradient(env, dqaccdqpos, dqaccdqvel, dqaccdqfrc):
+def integrate_gradients(env, dqaccdqpos, dqaccdqvel, dqaccdctrl):
     m = env.model
     nv = m.nv
     nu = m.nu
@@ -25,8 +27,6 @@ def state_ctrl_dynamics_gradient(env, dqaccdqpos, dqaccdqvel, dqaccdqfrc):
                           axis=1)
 
     # dfda: d(next_state)/d(action_values)
-    actuator_moment = np.array(env.data.actuator_moment).reshape(nv, nu)
-    dqaccdctrl = np.matmul(dqaccdqfrc, actuator_moment)    # this is nv x nu
     dfda = np.concatenate([np.zeros([nv, nu]), dqaccdctrl * dt], axis=0)
 
     return dfds, dfda
@@ -42,7 +42,7 @@ def dynamics_worker(env, d):
 
     dqaccdqpos = [None] * m.nv * m.nv
     dqaccdqvel = [None] * m.nv * m.nv
-    dqaccdqfrc = [None] * m.nv * m.nv
+    dqaccdctrl = [None] * m.nv * m.nu
 
     istart = 0
     iend = m.nv
@@ -73,24 +73,24 @@ def dynamics_worker(env, d):
     warmstart = d.qacc_warmstart.copy()
 
     # finite-difference over force or acceleration: skip = mjSTAGE_VEL
-    for i in range(istart, iend):
+    for i in range(m.nu):
 
         # perturb selected target
-        d.qfrc_applied[i] += eps
+        d.ctrl[i] += eps
 
         # evaluate dynamics, with center warmstart
         mj.functions.mju_copy(d.qacc_warmstart, warmstart, m.nv)
         mj.functions.mj_forwardSkip(m, d, mj.const.STAGE_VEL, 1)
 
         # undo perturbation
-        d.qfrc_applied[i] = dmain.qfrc_applied[i]
+        d.ctrl[i] = dmain.ctrl[i]
 
         # compute column i of derivative 2
         for j in range(m.nv):
-            dqaccdqfrc[i + j * m.nv] = (output[j] - center[j]) / eps
+            dqaccdctrl[i + j * m.nv] = (output[j] - center[j]) / eps
 
     # finite-difference over velocity: skip = mjSTAGE_POS
-    for i in range(istart, iend):
+    for i in range(m.nv):
 
         # perturb velocity
         d.qvel[i] += eps
@@ -107,7 +107,7 @@ def dynamics_worker(env, d):
             dqaccdqvel[i + j * m.nv] = (output[j] - center[j]) / eps
 
     # finite-difference over position: skip = mjSTAGE_NONE
-    for i in range(istart, iend):
+    for i in range(m.nv):
 
         # get joint id for this dof
         jid = m.dof_jntid[i]
@@ -141,11 +141,10 @@ def dynamics_worker(env, d):
         for j in range(m.nv):
             dqaccdqpos[i + j * m.nv] = (output[j] - center[j]) / eps
 
-    # TODO: dqaccdfrc -> dqaccdctrl, use the conversion jacobian or ctrl perturbation
     dqaccdqpos = np.array(dqaccdqpos).reshape(m.nv, m.nv)
     dqaccdqvel = np.array(dqaccdqvel).reshape(m.nv, m.nv)
-    dqaccdqfrc = np.array(dqaccdqfrc).reshape(m.nv, m.nv)
-    dfds, dfda = state_ctrl_dynamics_gradient(env, dqaccdqpos, dqaccdqvel, dqaccdqfrc)
+    dqaccdctrl = np.array(dqaccdctrl).reshape(m.nv, m.nu)
+    dfds, dfda = integrate_gradients(env, dqaccdqpos, dqaccdqvel, dqaccdctrl)
     return dfds, dfda
 
 
@@ -161,9 +160,11 @@ def mj_gradients_factory(env, mode):
     worker = {'dynamics': dynamics_worker, 'reward': reward_worker}[mode]
 
     @env.gradient_wrapper(mode)
-    def mj_gradients(state):
-        mj_sim_main.model.set_state(state)
-        mj_sim.set_state(state)
+    def mj_gradients(qpos, qvel, ctrl):
+        env.set_state(qpos, qvel)
+        mj_sim.set_state(qpos, qvel)
+        env.data.ctrl[:] = ctrl
+        mj_sim.data.ctrl[:] = ctrl
         d = mj_sim.data
         # set solver options for finite differences
         mj_sim_main.model.opt.iterations = niter
