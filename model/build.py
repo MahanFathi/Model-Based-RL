@@ -1,7 +1,7 @@
-from model import meta_architectures
+from model import archs
 
 
-def build_model(cfg):
-    model_factory = getattr(meta_architectures, cfg.MODEL.META_ARCHITECTURE)
-    model = model_factory(cfg)
+def build_model(cfg, agent):
+    model_factory = getattr(archs, cfg.MODEL.META_ARCHITECTURE)
+    model = model_factory(cfg, agent)
     return model

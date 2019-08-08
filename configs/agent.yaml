@@ -1,12 +1,7 @@
 MODEL:
   META_ARCHITECTURE: 'Basic'
-DATASETS:
-  FACTORY: 'RouteLogsDataset'
-  TRAIN_PATH: '/path/to/dataset'
-  VAL_PATH: '/path/to/dataset'
-  TEST_PATH: '/path/to/dataset'
-DATALOADER:
-  NUM_WORKERS: 1
+MUJOCO:
+  ENV: 'HopperEnv'
 SOLVER:
   BASE_LR: 0.001
   BIAS_LR_FACTOR: 2

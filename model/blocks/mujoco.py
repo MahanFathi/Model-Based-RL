@@ -2,11 +2,11 @@ import torch
 from torch import autograd
 
 
-def mj_dynamics_block_factory(agent, mode):
-    mj_forward = agent.forward_factory('reward')
-    mj_gradients = agent.gradient_factory('reward')
+def mj_torch_block_factory(agent, mode):
+    mj_forward = agent.forward_factory(mode)
+    mj_gradients = agent.gradient_factory(mode)
 
-    class MJDynamics(autograd.Function):
+    class MjBlock(autograd.Function):
 
         @staticmethod
         def forward(ctx, state_action):
@@ -17,5 +17,7 @@ def mj_dynamics_block_factory(agent, mode):
         def backward(ctx, grad_output):
             state_action, = ctx.saved_tensors
             grad_input = grad_output.clone()
-            dynamics_jacobian = torch.TEnsor(mj_gradients(state_action.nump()))
-            return torch.matmul(dynamics_jacobian, grad_input)
+            jacobian = torch.Tensor(mj_gradients(state_action.nump()))
+            return torch.matmul(jacobian, grad_input)
+
+    return MjBlock

@@ -2,34 +2,20 @@ import os
 import argparse
 from datetime import datetime
 import torch
+from mujoco import build_agent
 from model import build_model
 from model.solver import make_optimizer
 from model.config import get_cfg_defaults
 from model.engine import do_train, do_inference
-from data import make_data_loader
 from utils.logger import setup_logger
 
 
 def train(cfg):
     # build the model
-    model = build_model(cfg)
+    agent = build_agent(cfg)
+    model = build_model(cfg, agent)
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
-
-    # build the optimizer
-    optimizer = make_optimizer(cfg, model)
-
-    # build the dataloader
-    dataloader = make_data_loader(cfg, 'train')
-
-    # start the training procedure
-    do_train(
-        cfg,
-        model,
-        dataloader,
-        optimizer,
-        device
-    )
 
 
 def inference(cfg):

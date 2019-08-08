@@ -2,7 +2,8 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
-from mujoco.util.gradientor import mj_gradients_factory
+from mujoco.util.backward import mj_gradients_factory
+from mujoco.util.forward import mj_forward_factory
 
 
 class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
@@ -26,8 +27,8 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def _get_obs(self):
         return np.concatenate([
-            self.sim.data.qpos.flat,    # this part different from gym. expose the whole thing.
-            self.sim.data.qvel.flat,    # this part different from gym. clip nothing.
+            self.sim.data.qpos.flat,  # this part different from gym. expose the whole thing.
+            self.sim.data.qvel.flat,  # this part different from gym. clip nothing.
         ])
 
     def reset_model(self):
@@ -45,25 +46,6 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def get_mj_state(self):
         return self.sim.get_state()
 
-    def gradient_wrapper(self, mode):
-        """
-        Decorator for making gradients be the same size the observations for example.
-        :param mode: either 'dynamics' or 'reward'
-        :return:
-        """
-        if mode is 'dynamics':
-            def decorator(gradients_fn):
-                def wrapper(*args, **kwargs):
-                    dfds, dfda = gradients_fn(*args, **kwargs)
-                    # no further reshaping is needed for the case of hopper
-                    return dfds, dfda
-                return wrapper
-            return decorator
-        elif mode is 'reward':
-            pass
-        else:
-            raise Exception('give me a valid mode')
-
     @classmethod
     def gradient_factory(cls, mode):
         """
@@ -75,11 +57,60 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         env = cls()
         return mj_gradients_factory(env, mode)
 
+    @classmethod
+    def forward_factory(cls, mode):
+        """
+        :param mode: 'dynamics' or 'reward'
+        :return:
+        """
+        env = cls()
+        return mj_forward_factory(env, mode)
 
+    def gradient_wrapper(self, mode):
+        """
+        Decorator for making gradients be the same size the observations for example.
+        :param mode: either 'dynamics' or 'reward'
+        :return:
+        """
 
+        def decorator(gradients_fn):
+            def wrapper(*args, **kwargs):
+                dfds, dfda = gradients_fn(*args, **kwargs)
+                # no further reshaping is needed for the case of hopper, also it's mode-agnostic
+                gradients = np.concatenate([dfds, dfda], axis=1)
+                return gradients
+            return wrapper
+        return decorator
 
+    def forward_wrapper(self, mode):
+        """
+        Decorator for making gradients be the same size the observations for example.
+        :param mode: either 'dynamics' or 'reward'
+        :return:
+        """
+        if mode is 'dynamics':
+            def decorator(forward_fn):
+                def wrapper(*args, **kwargs):
+                    s = forward_fn(*args, **kwargs)  # next state
+                    # no further reshaping is needed for the case of hopper, also it's mode-agnostic
+                    return s
+                return wrapper
+            return decorator
+        elif mode is 'reward':
+            def decorator(forward_fn):
+                def wrapper(*args, **kwargs):
+                    r = forward_fn(*args, **kwargs)  # reward
+                    # no further reshaping is needed for the case of hopper
+                    return r
+                return wrapper
+            return decorator
+        else:
+            raise Exception('give me a valid mode')
 
-
-
-
-
+    @staticmethod
+    def is_done(qpos, qvel):
+        height, ang = qpos[1:3]
+        s = np.concatenate([qpos.flat, qvel.flat])
+        done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
+                    (height > .7) and (abs(ang) < .2))
+        return done

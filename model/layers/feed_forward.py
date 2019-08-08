@@ -41,8 +41,8 @@ class FeedForward(nn.Module):
                 self.__setattr__('batchnorm_layer_{}'.format(str(i)), batchnorm_layer)
                 self._layers.update({'batchnorm_layer_{}'.format(str(i)): batchnorm_layer})
             # Add activation layer
-            self.__setattr__('activation_layer_{}'.format(str(i)), activation_fn)  # relu for the last layer also makes sense
-            self._layers.update({'activation_layer_{}'.format(str(i)): activation_fn})
+            self.__setattr__('activation_layer_{}'.format(str(i)), activation_fn())  # relu for the last layer also makes sense
+            self._layers.update({'activation_layer_{}'.format(str(i)): activation_fn()})
         if not activation_out:
             self._layers.popitem()
 

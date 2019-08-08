@@ -10,66 +10,24 @@ _C = CN()
 # Model Configs
 # ---------------------------------------------------------------------------- #
 _C.MODEL = CN()
-_C.MODEL.META_ARCHITECTURE = 'StraightLSTM'
-_C.MODEL.DEVICE = "cuda"
+_C.MODEL.META_ARCHITECTURE = 'Basic'
+_C.MODEL.DEVICE = "cpu"
 _C.MODEL.WEIGHTS = ""  # should be a path to pth or ckpt file
+_C.MODEL.TRAIN_HORIZON = 20
 
 # ---------------------------------------------------------------------------- #
-# __RNN Configs
+# __Policy Net Configs
 # ---------------------------------------------------------------------------- #
-_C.MODEL.RNN = CN()
-_C.MODEL.RNN.NUM_LAYERS = 4
-_C.MODEL.RNN.HIDDEN_SIZE = 64
-_C.MODEL.RNN.DROPOUT = 0.
-# ---------------------------------------------------------------------------- #
-# __Fully Connected LSTM Output Layer
-# ---------------------------------------------------------------------------- #
-_C.MODEL.RNN.FC = CN()
-# Sequential input network pre-processing
-_C.MODEL.RNN.FC.INPUT = CN()            # corresponds to pre-processing sequential data with a feed forward network
-_C.MODEL.RNN.FC.INPUT.LAYERS = []    # a list of hidden layer sizes for output fc. [] means no hidden
-_C.MODEL.RNN.FC.INPUT.NORM_LAYERS = [0]     # should be a list of layer indices, example [0, 1, ...]
-_C.MODEL.RNN.FC.INPUT.OUT_SIZE = 64     # output size of pre-sequential network, which is the input size of LSTM
-# Sequential input network pre-processing
-_C.MODEL.RNN.FC.OUTPUT = CN()           # corresponds to pre-processing sequential data with a feed forward network
-_C.MODEL.RNN.FC.OUTPUT.LAYERS = []   # a list of hidden layer sizes for output fc. [] means no hidden
-_C.MODEL.RNN.FC.OUTPUT.NORM_LAYERS = [0]    # should be a list of layer indices, example [0, 1, ...]
-_C.MODEL.RNN.FC.OUTPUT.OUT_SIZE = 1     # output should be of size one, which is eta
+_C.MODEL.POLICY = CN()
+_C.MODEL.POLICY.HOPPER = CN()
+_C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32]    # a list of hidden layer sizes for output fc. [] means no hidden
+_C.MODEL.POLICY.HOPPER.NORM_LAYERS = []         # should be a list of layer indices, example [0, 1, ...]
 
 # ---------------------------------------------------------------------------- #
-# __Fully Connected Meta Data Input Layer
+# Model Configs
 # ---------------------------------------------------------------------------- #
-_C.MODEL.METADATA = CN()
-_C.MODEL.METADATA.FC = CN()
-_C.MODEL.METADATA.FC.INITIALIZE_CELL_STATE = False  # this layer initializes hidden state of LSTM. if true, initializes cell state as well.
-_C.MODEL.METADATA.FC.LAYERS = [32]  # a list of hidden layer sizes for output fc. [] means no hidden
-_C.MODEL.METADATA.FC.NORM_LAYERS = [0]  # should be a list of layer indices, example [0, 1, ...]
-
-# ---------------------------------------------------------------------------- #
-# Input Pipeline Configs
-# ---------------------------------------------------------------------------- #
-_C.INPUT = CN()
-_C.INPUT.BATCH_SIZE = 64
-_C.INPUT.METADATA = CN()
-_C.INPUT.METADATA.FEATURE_SIZE = 5
-_C.INPUT.SEQUENTIAL_DATA = CN()
-_C.INPUT.SEQUENTIAL_DATA.FEATURE_SIZE = 3
-
-# ---------------------------------------------------------------------------- #
-# Datasets
-# ---------------------------------------------------------------------------- #
-_C.DATASETS = CN()
-_C.DATASETS.FACTORY = 'RouteLogsDataset'    # dataset class
-_C.DATASETS.TRAIN_PATH = ''                 # path to dataset
-_C.DATASETS.VAL_PATH = ''                   # path to dataset
-_C.DATASETS.TEST_PATH = ''                  # path to dataset
-_C.DATASETS.SHUFFLE = True                  # load in shuffle fashion
-
-# ---------------------------------------------------------------------------- #
-# Dataloader Configs
-# ---------------------------------------------------------------------------- #
-_C.DATALOADER = CN()
-_C.DATALOADER.NUM_WORKERS = 0   # Number of data loading threads
+_C.MUJOCO = CN()
+_C.MUJOCO.ENV = 'HopperEnv'
 
 # ---------------------------------------------------------------------------- #
 # Solver Configs
