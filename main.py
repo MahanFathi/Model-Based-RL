@@ -4,9 +4,7 @@ from datetime import datetime
 import torch
 from mujoco import build_agent
 from model import build_model
-from model.solver import make_optimizer
 from model.config import get_cfg_defaults
-from model.engine import do_train, do_inference
 from utils.logger import setup_logger
 
 
