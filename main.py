@@ -17,6 +17,11 @@ def train(cfg):
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
 
+    state = torch.Tensor(agent.reset())
+    while True:
+        state, reward = model(state)
+        print("Reward: \t{}".format(reward))
+
 
 def inference(cfg):
     pass

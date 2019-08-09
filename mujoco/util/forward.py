@@ -1,3 +1,4 @@
+import numpy as np
 
 
 def mj_forward_factory(env, mode):
@@ -20,7 +21,7 @@ def mj_forward_factory(env, mode):
         # set solver options for finite differences
         next_state, reward, done, _ = env.step(ctrl)
         if mode is 'dynamics':
-            return next_state
+            return np.array(next_state)
         elif mode is 'reward':
-            return reward
+            return np.array([reward])
     return mj_forward

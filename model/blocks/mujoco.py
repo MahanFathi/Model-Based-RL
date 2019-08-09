@@ -11,13 +11,13 @@ def mj_torch_block_factory(agent, mode):
         @staticmethod
         def forward(ctx, state_action):
             ctx.save_for_backward(state_action)
-            return torch.Tensor(mj_forward(state_action.numpy()))
+            return torch.Tensor(mj_forward(state_action.detach().numpy()))
 
         @staticmethod
         def backward(ctx, grad_output):
             state_action, = ctx.saved_tensors
             grad_input = grad_output.clone()
-            jacobian = torch.Tensor(mj_gradients(state_action.nump()))
+            jacobian = torch.Tensor(mj_gradients(state_action.detach().numpy()))
             return torch.matmul(jacobian, grad_input)
 
     return MjBlock

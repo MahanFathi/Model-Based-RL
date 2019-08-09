@@ -29,8 +29,8 @@ class Basic(nn.Module):
         )
 
         # build forward dynamics block
-        self.dynamics_block = mj_torch_block_factory(agent, 'dynamics')
-        self.reward_block = mj_torch_block_factory(agent, 'reward')
+        self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
+        self.reward_block = mj_torch_block_factory(agent, 'reward').apply
 
     def forward(self, state):
         """Single pass.
