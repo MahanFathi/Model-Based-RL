@@ -172,9 +172,6 @@ def reward_worker(env, d):
     _, center, _, _ = env.step(d.ctrl)
     copy_data(m, d, dmain)  # revert changes to state and forces
 
-    # save output for center point and warmstart (needed in forward only)
-    warmstart = d.qacc_warmstart.copy()
-
     # finite-difference over control values
     for i in range(m.nu):
         # perturb selected target

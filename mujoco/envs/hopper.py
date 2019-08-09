@@ -78,7 +78,6 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                 dfds, dfda = gradients_fn(*args, **kwargs)
                 # no further reshaping is needed for the case of hopper, also it's mode-agnostic
                 gradients = np.concatenate([dfds, dfda], axis=1)
-                print(gradients)
                 return gradients
             return wrapper
         return decorator
