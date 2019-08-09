@@ -30,22 +30,23 @@ def integrate_dynamics_gradients(env, dqaccdqpos, dqaccdqvel, dqaccdctrl):
     dt = env.model.opt.timestep * env.frame_skip
 
     # dfds: d(next_state)/d(current_state): consists of four parts ul, dl, ur, and ud
-    ul = np.identity(nv, nv, dtype=np.float)
-    ur = np.identity(nv, nv, dtype=np.float) * dt
+    ul = np.identity(nv, dtype=np.float32)
+    ur = np.identity(nv, dtype=np.float32) * dt
     dl = dqaccdqpos * dt
-    dr = np.identity(nv, nv, dtype=np.float) + dqaccdqvel * dt
+    dr = np.identity(nv, dtype=np.float32) + dqaccdqvel * dt
     dfds = np.concatenate([np.concatenate([ul, dl], axis=0),
                            np.concatenate([ur, dr], axis=0)],
                           axis=1)
 
     # dfda: d(next_state)/d(action_values)
     dfda = np.concatenate([np.zeros([nv, nu]), dqaccdctrl * dt], axis=0)
-
     return dfds, dfda
 
 
 def integrate_reward_gradient(env, drdqpos, drdqvel, drdctrl):
-    return np.concatenate([drdqpos, drdqvel]), drdctrl
+    return np.concatenate([np.array(drdqpos).reshape(1, env.model.nq),
+                           np.array(drdqvel).reshape(1, env.model.nv)], axis=1), \
+           np.array(drdctrl).reshape(1, env.model.nu)
 
 
 def dynamics_worker(env, d):
@@ -88,7 +89,7 @@ def dynamics_worker(env, d):
 
         # compute column i of derivative 2
         for j in range(m.nv):
-            dqaccdctrl[i + j * m.nv] = (output[j] - center[j]) / eps
+            dqaccdctrl[i + j * m.nu] = (output[j] - center[j]) / eps
 
     # finite-difference over velocity: skip = mjSTAGE_POS
     for i in range(m.nv):
@@ -241,17 +242,17 @@ def mj_gradients_factory(env, mode):
 
     @env.gradient_wrapper(mode)
     def mj_gradients(state_action):
-        qpos = state_action[:env.model.nq]
-        qvel = state_action[env.model.nq:(env.model.nq + env.model.nv)]
+        state = state_action[:env.model.nq + env.model.nv]
+        qpos = state[:env.model.nq]
+        qvel = state[env.model.nq:]
         ctrl = state_action[-env.model.nu:]
         env.set_state(qpos, qvel)
-        mj_sim.set_state(qpos, qvel)
         env.data.ctrl[:] = ctrl
-        mj_sim.data.ctrl[:] = ctrl
         d = mj_sim.data
         # set solver options for finite differences
         mj_sim_main.model.opt.iterations = niter
         mj_sim_main.model.opt.tolerance = 0
-        return worker(env, d)
+        dfds, dfda = worker(env, d)
+        return dfds, dfda
 
     return mj_gradients

@@ -78,6 +78,7 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                 dfds, dfda = gradients_fn(*args, **kwargs)
                 # no further reshaping is needed for the case of hopper, also it's mode-agnostic
                 gradients = np.concatenate([dfds, dfda], axis=1)
+                print(gradients)
                 return gradients
             return wrapper
         return decorator
@@ -108,9 +109,8 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             raise Exception('give me a valid mode')
 
     @staticmethod
-    def is_done(qpos, qvel):
-        height, ang = qpos[1:3]
-        s = np.concatenate([qpos.flat, qvel.flat])
-        done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
+    def is_done(state):
+        height, ang = state[1:3]
+        done = not (np.isfinite(state).all() and (np.abs(state[2:]) < 100).all() and
                     (height > .7) and (abs(ang) < .2))
         return done

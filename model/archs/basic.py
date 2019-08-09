@@ -5,9 +5,6 @@ from model.blocks.policy import Policy
 
 
 class Basic(nn.Module):
-    """This architecture takes in the meta data, turns it into the
-    initial hidden state of the LSTM, and flows it w/ the sequential data.
-    """
     def __init__(self, cfg, agent):
         """Build the model from the fed config node.
 

@@ -18,6 +18,6 @@ def mj_torch_block_factory(agent, mode):
             state_action, = ctx.saved_tensors
             grad_input = grad_output.clone()
             jacobian = torch.Tensor(mj_gradients(state_action.detach().numpy()))
-            return torch.matmul(jacobian, grad_input)
+            return torch.matmul(grad_input, jacobian)
 
     return MjBlock

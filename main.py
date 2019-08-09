@@ -2,23 +2,34 @@ import os
 import argparse
 from datetime import datetime
 import torch
+
+from model.engine.trainer import do_training
 from mujoco import build_agent
 from model import build_model
+from model.solver import make_optimizer
 from model.config import get_cfg_defaults
 from utils.logger import setup_logger
 
 
 def train(cfg):
-    # build the model
+    # build the agent
     agent = build_agent(cfg)
+
+    # build the agent
     model = build_model(cfg, agent)
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
 
-    state = torch.Tensor(agent.reset())
-    while True:
-        state, reward = model(state)
-        print("Reward: \t{}".format(reward))
+    # build the optimizer
+    optimizer = make_optimizer(cfg, model)
+
+    do_training(
+        cfg,
+        model,
+        agent,
+        optimizer,
+        device
+    )
 
 
 def inference(cfg):
