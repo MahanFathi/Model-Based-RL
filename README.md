@@ -1,6 +1,6 @@
 # Model-based Reinforcement Learning
 
-Directly back-propagate into your policy network, using model jacobians calculated in MuJoCo using finite-difference.
+Directly back-propagate into your policy network, from model jacobians calculated in MuJoCo using finite-difference.
 
 ### This repo contains:
 * Finite-difference calculation of MuJoCo dynamics jacobians in `mujoco-py`
