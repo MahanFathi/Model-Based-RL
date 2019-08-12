@@ -1,5 +1,6 @@
+torch
+mujoco_py
+numpy
+gym
 yacs
 visdom
-torch
-numpy
-mujocu-py<2.1,>=2.0
