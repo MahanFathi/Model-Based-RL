@@ -13,14 +13,14 @@ eps = 1e-6
 
 def copy_data(m, d_source, d_dest):
     d_dest.time = d_source.time
-    mj.functions.mju_copy(d_dest.qpos, d_dest.qpos, m.nq)
-    mj.functions.mju_copy(d_dest.qvel, d_dest.qvel, m.nv)
-    mj.functions.mju_copy(d_dest.qacc, d_dest.qacc, m.nv)
-    mj.functions.mju_copy(d_dest.qacc_warmstart, d_dest.qacc_warmstart, m.nv)
-    mj.functions.mju_copy(d_dest.qfrc_applied, d_dest.qfrc_applied, m.nv)
+    d_dest.qpos[:] = d_source.qpos
+    d_dest.qvel[:] = d_source.qvel
+    d_dest.qacc[:] = d_source.qacc
+    d_dest.qacc_warmstart[:] = d_source.qacc_warmstart
+    d_dest.qfrc_applied[:] = d_source.qfrc_applied
     for i in range(m.nbody):
-        mj.functions.mju_copy(d_dest.xfrc_applied[i], d_source.xfrc_applied[i], 6)
-    mj.functions.mju_copy(d_dest.ctrl, d_source.ctrl, m.nu)
+        d_dest.xfrc_applied[i][:] = d_source.xfrc_applied[i]
+    d_dest.ctrl[:] = d_source.ctrl
 
 
 def integrate_dynamics_gradients(env, dqaccdqpos, dqaccdqvel, dqaccdctrl):
@@ -178,7 +178,7 @@ def reward_worker(env, d):
         d.ctrl[i] += eps
 
         _, output, _, _ = env.step(d.ctrl)
-        copy_data(m, dmain, d)  # undo perturbation
+        copy_data(m, d, dmain)  # undo perturbation
 
         drdctrl[i] = (output - center) / eps
 
@@ -188,7 +188,7 @@ def reward_worker(env, d):
         d.qvel[i] += eps
 
         _, output, _, _ = env.step(d.ctrl)
-        copy_data(m, dmain, d)  # undo perturbation
+        copy_data(m, d, dmain)  # undo perturbation
 
         drdqvel[i] = (output - center) / eps
 
@@ -217,7 +217,7 @@ def reward_worker(env, d):
             d.qpos[m.jnt_qposadr[jid] + i - m.jnt_dofadr[jid]] += eps
 
         _, output, _, _ = env.step(d.ctrl)
-        copy_data(m, dmain, d)  # undo perturbation
+        copy_data(m, d, dmain)  # undo perturbation
 
         # compute column i of derivative 0
         drdqpos[i] = (output - center) / eps
