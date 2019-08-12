@@ -31,3 +31,9 @@ Python3.6:
 
 Other:
 * Tested w/ `mujoco200`
+
+### Usage
+Run:
+```bash
+python3 main.py --config-file ./configs/agent.yaml
+```
