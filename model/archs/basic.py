@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from model.blocks.mujoco import mj_torch_block_factory
-from model.blocks.policy import Policy
+from model.blocks.policy.build import build_policy
 
 
 class Basic(nn.Module):
@@ -16,14 +16,10 @@ class Basic(nn.Module):
 
         # get policy config
         env_name = type(self.agent).__name__.split('Env')[0].upper()
-        policy_config = getattr(cfg.MODEL.POLICY, env_name)
+        self.policy_cfg = getattr(cfg.MODEL.POLICY, env_name)
 
         # build policy net
-        self.policy_net = Policy(
-            self.agent.observation_space.shape[0],
-            policy_config.LAYERS,
-            self.agent.action_space.shape[0],
-        )
+        self.policy_net = build_policy(self.policy_cfg, self.agent)
 
         # build forward dynamics block
         self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
