@@ -20,7 +20,7 @@ _C.MODEL.TRAIN_HORIZON = 20
 # ---------------------------------------------------------------------------- #
 _C.MODEL.POLICY = CN()
 _C.MODEL.POLICY.HOPPER = CN()
-_C.MODEL.POLICY.HOPPER.ARCH = "DeterministicPolicy"
+_C.MODEL.POLICY.HOPPER.ARCH = "StochasticPolicy"
 _C.MODEL.POLICY.HOPPER.STD = 0.05
 _C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32]    # a list of hidden layer sizes for output fc. [] means no hidden
 _C.MODEL.POLICY.HOPPER.NORM_LAYERS = []         # should be a list of layer indices, example [0, 1, ...]
