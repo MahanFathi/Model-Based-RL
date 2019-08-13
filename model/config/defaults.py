@@ -29,6 +29,7 @@ _C.MODEL.POLICY.HOPPER.NORM_LAYERS = []         # should be a list of layer indi
 _C.MUJOCO = CN()
 _C.MUJOCO.ENV = 'HopperEnv'
 _C.MUJOCO.GAMMA = 0.98
+_C.MUJOCO.HORIZON_STEPS = 100
 
 # ---------------------------------------------------------------------------- #
 # Solver Configs

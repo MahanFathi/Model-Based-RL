@@ -25,7 +25,8 @@ def do_training(
         decay = gamma ** 0
         rewards = torch.Tensor()
         state = torch.Tensor(agent.reset())
-        while not agent.is_done(state.detach().numpy()):
+        # while not agent.is_done(state.detach().numpy()):
+        for _ in range(cfg.MUJOCO.HORIZON_STEPS):
             iteration += 1
             state, reward = model(state)
             rewards = torch.cat([rewards, decay * reward])
