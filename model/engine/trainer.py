@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 from .utils.build import build_state_experience_replay
 from utils.logger import setup_logger
 from utils.visdom_plots import VisdomLogger
@@ -40,11 +39,11 @@ def do_training(
                 state_batch, reward_batch = model(state_batch)
                 reward_sum += decay * reward_batch
                 decay *= gamma
-                state_xr.dataset.add_batch(state_batch)
+                state_xr.dataset.add_batch(state_batch.detach())
             loss = -torch.mean(reward_sum)  # mean over batch
             loss.backward(retain_graph=True)
-        print("Reward: \t{}".format(-loss.item()))
-        optimizer.step()
+            print("Reward: \t{}".format(-loss.item()))
+            optimizer.step()
 
         # if iteration % cfg.LOG.PERIOD == 0:
         #     visdom.update({'loss': [loss.item()]})
