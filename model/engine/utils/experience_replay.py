@@ -1,5 +1,6 @@
 import torch
 import torch.utils.data
+import random
 
 
 class StateQueue(object):
@@ -15,9 +16,16 @@ class StateQueue(object):
     def __len__(self):
         return len(self.queue) or self.size
 
+    def add(self, state):
+        self.queue.append(state)
+        self.queue = self.queue[-self.size:]
+
     def add_batch(self, states):
         self.queue.extend([state for state in states])
         self.queue = self.queue[-self.size:]
+
+    def get_item(self):
+        return random.choice(self.queue)
 
 
 def make_data_sampler(dataset, shuffle):
