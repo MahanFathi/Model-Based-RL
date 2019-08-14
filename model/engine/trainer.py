@@ -36,6 +36,7 @@ def do_training(
         for _ in range(cfg.SOLVER.BATCH_SIZE):
             decay = gamma ** 0
             rewards = torch.Tensor()
+            # state = torch.Tensor(agent.reset())
             state = state_xr.get_item()
             for _ in range(cfg.MUJOCO.HORIZON_STEPS):
                 iteration += 1
