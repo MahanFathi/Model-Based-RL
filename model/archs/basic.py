@@ -22,8 +22,8 @@ class Basic(nn.Module):
         self.policy_net = build_policy(self.policy_cfg, self.agent)
 
         # build forward dynamics block
-        self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
-        self.reward_block = mj_torch_block_factory(agent, 'reward').apply
+        self.dynamics_block = mj_torch_block_factory(cfg, agent, 'dynamics').apply
+        self.reward_block = mj_torch_block_factory(cfg, agent, 'reward').apply
 
     def forward(self, state):
         """Single pass.
@@ -33,7 +33,7 @@ class Basic(nn.Module):
 
         # get action
         action = self.policy_net(state)
-        state_action = torch.cat([state, action])
+        state_action = torch.cat([state, action], dim=1)
         next_state = self.dynamics_block(state_action)
         reward = self.reward_block(state_action)
         return next_state, reward

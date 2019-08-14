@@ -32,6 +32,17 @@ _C.MUJOCO = CN()
 _C.MUJOCO.ENV = 'HopperEnv'
 _C.MUJOCO.GAMMA = 0.98
 _C.MUJOCO.HORIZON_STEPS = 100
+_C.MUJOCO.POOL_SIZE = CN()
+_C.MUJOCO.POOL_SIZE.DYNAMICS = 4
+_C.MUJOCO.POOL_SIZE.REWARD = 4
+
+# ---------------------------------------------------------------------------- #
+# Experience Replay
+# ---------------------------------------------------------------------------- #
+_C.EXPERIENCE_REPLAY = CN()
+_C.EXPERIENCE_REPLAY.SIZE = 2 ** 14
+_C.EXPERIENCE_REPLAY.SHUFFLE = True
+_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 8
 
 # ---------------------------------------------------------------------------- #
 # Solver Configs

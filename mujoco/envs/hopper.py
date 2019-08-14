@@ -73,6 +73,7 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         :return:
         """
 
+        # mode agnostic for now
         def decorator(gradients_fn):
             def wrapper(*args, **kwargs):
                 dfds, dfda = gradients_fn(*args, **kwargs)
@@ -88,24 +89,15 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         :param mode: either 'dynamics' or 'reward'
         :return:
         """
-        if mode is 'dynamics':
-            def decorator(forward_fn):
-                def wrapper(*args, **kwargs):
-                    s = forward_fn(*args, **kwargs)  # next state
-                    # no further reshaping is needed for the case of hopper, also it's mode-agnostic
-                    return s
-                return wrapper
-            return decorator
-        elif mode is 'reward':
-            def decorator(forward_fn):
-                def wrapper(*args, **kwargs):
-                    r = forward_fn(*args, **kwargs)  # reward
-                    # no further reshaping is needed for the case of hopper
-                    return r
-                return wrapper
-            return decorator
-        else:
-            raise Exception('give me a valid mode')
+
+        # mode agnostic for now
+        def decorator(forward_fn):
+            def wrapper(*args, **kwargs):
+                f = forward_fn(*args, **kwargs)  # next state
+                # no further reshaping is needed for the case of hopper, also it's mode-agnostic
+                return f
+            return wrapper
+        return decorator
 
     @staticmethod
     def is_done(state):
