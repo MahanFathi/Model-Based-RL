@@ -38,6 +38,7 @@ _C.MUJOCO.HORIZON_STEPS = 100
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 _C.SOLVER.EPOCHS = 100
+_C.SOLVER.BATCH_SIZE = 64
 
 _C.SOLVER.BASE_LR = 0.00001
 _C.SOLVER.BIAS_LR_FACTOR = 2

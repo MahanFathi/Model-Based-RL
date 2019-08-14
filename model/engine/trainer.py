@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from utils.logger import setup_logger
 from utils.visdom_plots import VisdomLogger
 
@@ -22,18 +23,21 @@ def do_training(
     gamma = cfg.MUJOCO.GAMMA
     iteration = 0
     for _ in range(cfg.SOLVER.EPOCHS):
-        decay = gamma ** 0
-        rewards = torch.Tensor()
-        state = torch.Tensor(agent.reset())
-        for _ in range(cfg.MUJOCO.HORIZON_STEPS):
-            iteration += 1
-            state, reward = model(state)
-            rewards = torch.cat([rewards, decay * reward])
-            decay *= gamma
-        loss = -torch.sum(rewards)
-        print("Reward: \t{}".format(-loss))
         optimizer.zero_grad()
-        loss.backward()
+        batch_rewards = []
+        for _ in range(cfg.SOLVER.BATCH_SIZE):
+            decay = gamma ** 0
+            rewards = torch.Tensor()
+            state = torch.Tensor(agent.reset())
+            for _ in range(cfg.MUJOCO.HORIZON_STEPS):
+                iteration += 1
+                state, reward = model(state)
+                rewards = torch.cat([rewards, decay * reward])
+                decay *= gamma
+            loss = -torch.sum(rewards)
+            batch_rewards.append(-loss.item())
+            loss.backward()
+        print("Reward: \t{}".format(np.mean(batch_rewards)))
         optimizer.step()
 
         # if iteration % cfg.LOG.PERIOD == 0:
