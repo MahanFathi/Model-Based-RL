@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from utils.logger import setup_logger
 from utils.visdom_plots import VisdomLogger
+from .utils.build import build_state_experience_replay
 
 
 def do_training(
@@ -20,6 +21,13 @@ def do_training(
     logger = setup_logger('agent.train', False)
     logger.info("Start training")
 
+    # build and initialize state experience replay
+    state_xr = build_state_experience_replay(cfg)
+    for _ in range(cfg.SOLVER.BATCH_SIZE):
+        env_init_states = [torch.Tensor(agent.reset())] * \
+                          int(cfg.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM / cfg.SOLVER.BATCH_SIZE)
+        state_xr.add_batch(env_init_states)
+
     gamma = cfg.MUJOCO.GAMMA
     iteration = 0
     for _ in range(cfg.SOLVER.EPOCHS):
@@ -28,10 +36,11 @@ def do_training(
         for _ in range(cfg.SOLVER.BATCH_SIZE):
             decay = gamma ** 0
             rewards = torch.Tensor()
-            state = torch.Tensor(agent.reset())
+            state = state_xr.get_item()
             for _ in range(cfg.MUJOCO.HORIZON_STEPS):
                 iteration += 1
                 state, reward = model(state)
+                state_xr.add(state.detach())
                 rewards = torch.cat([rewards, decay * reward])
                 decay *= gamma
             loss = -torch.sum(rewards)
