@@ -15,5 +15,5 @@ class StochasticPolicy(nn.Module):
         a_mean = self.mean_net(s)
         a_std = torch.ones_like(a_mean) * self.std
         a_dist = tdist.Normal(a_mean, a_std)
-        a = a_dist.rsample()
+        a = a_dist.rsample()    # sample with reparametrization trick
         return a

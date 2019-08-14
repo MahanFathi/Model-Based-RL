@@ -1,4 +1,6 @@
 import torch
+import numpy as np
+from .utils.build import build_state_experience_replay
 from utils.logger import setup_logger
 from utils.visdom_plots import VisdomLogger
 
@@ -19,22 +21,29 @@ def do_training(
     logger = setup_logger('agent.train', False)
     logger.info("Start training")
 
-    gamma = cfg.MUJOCO.GAMMA
+    # build and initialize state experience replay
+    state_xr = build_state_experience_replay(cfg)
+    for _ in range(cfg.SOLVER.BATCH_SIZE):
+        env_init_states = [torch.Tensor(agent.reset())] * \
+                          int(cfg.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM / cfg.SOLVER.BATCH_SIZE)
+        state_xr.dataset.add_batch(env_init_states)
+
     iteration = 0
+    gamma = cfg.MUJOCO.GAMMA
     for _ in range(cfg.SOLVER.EPOCHS):
-        decay = gamma ** 0
-        rewards = torch.Tensor()
-        state = torch.Tensor(agent.reset())
-        # while not agent.is_done(state.detach().numpy()):
-        for _ in range(cfg.MUJOCO.HORIZON_STEPS):
-            iteration += 1
-            state, reward = model(state)
-            rewards = torch.cat([rewards, decay * reward])
-            decay *= gamma
-        loss = -torch.sum(rewards)
-        print("Reward: \t{}".format(-loss))
-        optimizer.zero_grad()
-        loss.backward()
+        for state_batch in state_xr:
+            decay = gamma ** 0
+            optimizer.zero_grad()
+            reward_sum = torch.zeros((cfg.SOLVER.BATCH_SIZE, 1))
+            for _ in range(cfg.MUJOCO.HORIZON_STEPS):
+                iteration += 1
+                state_batch, reward_batch = model(state_batch)
+                reward_sum += decay * reward_batch
+                decay *= gamma
+                state_xr.dataset.add_batch(state_batch)
+            loss = -torch.mean(reward_sum)  # mean over batch
+            loss.backward(retain_graph=True)
+        print("Reward: \t{}".format(-loss.item()))
         optimizer.step()
 
         # if iteration % cfg.LOG.PERIOD == 0:
