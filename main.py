@@ -70,10 +70,6 @@ def main():
     # setup the logger
     if not os.path.isdir(cfg.OUTPUT.DIR):
         os.mkdir(cfg.OUTPUT.DIR)
-    logger = setup_logger("agent.train", cfg.OUTPUT.DIR,
-                          '{0:%Y-%m-%d %H:%M:%S}_log'.format(datetime.now()))
-    logger.info(args)
-    logger.info("Running with config:\n{}".format(cfg))
 
     # TRAIN
     train(cfg)

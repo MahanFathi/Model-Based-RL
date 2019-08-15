@@ -20,7 +20,8 @@ _C.MODEL.WEIGHTS = ""  # should be a path to pth or ckpt file
 _C.MODEL.POLICY = CN()
 _C.MODEL.POLICY.HOPPER = CN()
 _C.MODEL.POLICY.HOPPER.ARCH = "StochasticPolicy"
-_C.MODEL.POLICY.HOPPER.STD = 0.05
+_C.MODEL.POLICY.HOPPER.STD_MEAN = 0.35
+_C.MODEL.POLICY.HOPPER.STD_STD = 0.4
 _C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32]    # a list of hidden layer sizes for output fc. [] means no hidden
 _C.MODEL.POLICY.HOPPER.NORM_LAYERS = []         # should be a list of layer indices, example [0, 1, ...]
 
@@ -41,15 +42,7 @@ _C.MUJOCO.POOL_SIZE.REWARD = 4
 _C.EXPERIENCE_REPLAY = CN()
 _C.EXPERIENCE_REPLAY.SIZE = 2 ** 14
 _C.EXPERIENCE_REPLAY.SHUFFLE = True
-_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 8
-
-# ---------------------------------------------------------------------------- #
-# Experience Replay
-# ---------------------------------------------------------------------------- #
-_C.EXPERIENCE_REPLAY = CN()
-_C.EXPERIENCE_REPLAY.SIZE = 2 ** 14
-_C.EXPERIENCE_REPLAY.SHUFFLE = True
-_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 8
+_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 13
 
 # ---------------------------------------------------------------------------- #
 # Solver Configs

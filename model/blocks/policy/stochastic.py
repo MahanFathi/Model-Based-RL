@@ -15,7 +15,7 @@ class StochasticPolicy(nn.Module):
         # variance parameters
         action_size = agent.action_space.sample().shape[0]
         self.std = Parameter(torch.Tensor(action_size, ))
-        nn.init.normal(self.std)
+        nn.init.normal_(self.std, mean=policy_cfg.STD_MEAN, std=policy_cfg.STD_STD)
         self.std.data = abs(self.std.data)
 
     def forward(self, s):

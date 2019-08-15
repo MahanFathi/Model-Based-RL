@@ -21,6 +21,8 @@ def do_training(
     logger = setup_logger('agent.train', False)
     logger.info("Start training")
 
+    logger.info("Running with config:\n{}".format(cfg))
+
     # build and initialize state experience replay
     state_xr = build_state_experience_replay(cfg)
     for _ in range(cfg.SOLVER.BATCH_SIZE):
