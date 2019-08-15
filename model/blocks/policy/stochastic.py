@@ -20,7 +20,6 @@ class StochasticPolicy(nn.Module):
 
     def forward(self, s):
         a_mean = self.mean_net(s)
-        a_dist = tdist.Normal(a_mean, torch.exp(self.logstd))
-        print(torch.exp(self.logstd))
-        a = a_dist.rsample()    # sample with re-parametrization trick
+        a_std = torch.exp(self.logstd)
+        a = tdist.Normal(a_mean, a_std).rsample()  # sample with re-parametrization trick
         return a
