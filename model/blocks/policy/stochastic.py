@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.distributions as tdist
+from torch.nn.parameter import Parameter
 from .deterministic import DeterministicPolicy
 
 
@@ -8,12 +9,17 @@ class StochasticPolicy(nn.Module):
     def __init__(self, policy_cfg, agent):
         super(StochasticPolicy, self).__init__()
 
+        # mean network
         self.mean_net = DeterministicPolicy(policy_cfg, agent)
-        self.std = policy_cfg.STD
+
+        # variance parameters
+        action_size = agent.action_space.sample().shape[0]
+        self.std = Parameter(torch.Tensor(action_size, ))
+        nn.init.normal(self.std)
+        self.std.data = abs(self.std.data)
 
     def forward(self, s):
         a_mean = self.mean_net(s)
-        a_std = torch.ones_like(a_mean) * self.std
-        a_dist = tdist.Normal(a_mean, a_std)
+        a_dist = tdist.Normal(a_mean, self.std)
         a = a_dist.rsample()    # sample with reparametrization trick
         return a
