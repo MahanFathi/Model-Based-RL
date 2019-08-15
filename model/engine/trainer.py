@@ -1,5 +1,7 @@
+import os
 import torch
 import numpy as np
+from datetime import datetime
 from utils.logger import setup_logger
 from utils.visdom_plots import VisdomLogger
 from .utils.build import build_state_experience_replay
@@ -18,7 +20,10 @@ def do_training(
     # get the trainer logger and visdom
     visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
     visdom.register_keys(['reward'])
-    logger = setup_logger('agent.train', False)
+    if not os.path.isdir(cfg.OUTPUT.DIR):
+        os.mkdir(cfg.OUTPUT.DIR)
+    logger = setup_logger("agent.train", cfg.OUTPUT.DIR,
+                          '{0:%Y-%m-%d %H:%M:%S}_log'.format(datetime.now()))
     logger.info("Start training")
 
     logger.info("Running with config:\n{}".format(cfg))

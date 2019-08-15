@@ -1,6 +1,4 @@
-import os
 import argparse
-from datetime import datetime
 import torch
 
 from model.engine.trainer import do_training
@@ -8,7 +6,6 @@ from mujoco import build_agent
 from model import build_model
 from model.solver import make_optimizer
 from model.config import get_cfg_defaults
-from utils.logger import setup_logger
 
 
 def train(cfg):
@@ -66,10 +63,6 @@ def main():
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
-
-    # setup the logger
-    if not os.path.isdir(cfg.OUTPUT.DIR):
-        os.mkdir(cfg.OUTPUT.DIR)
 
     # TRAIN
     train(cfg)

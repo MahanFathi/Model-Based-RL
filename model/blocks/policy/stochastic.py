@@ -14,12 +14,13 @@ class StochasticPolicy(nn.Module):
 
         # variance parameters
         action_size = agent.action_space.sample().shape[0]
-        self.std = Parameter(torch.Tensor(action_size, ))
-        nn.init.normal_(self.std, mean=policy_cfg.STD_MEAN, std=policy_cfg.STD_STD)
-        self.std.data = abs(self.std.data)
+        self.logstd = Parameter(torch.Tensor(action_size, ))
+        nn.init.zeros_(self.logstd)
+        self.logstd.data = abs(self.logstd.data)
 
     def forward(self, s):
         a_mean = self.mean_net(s)
-        a_dist = tdist.Normal(a_mean, self.std)
-        a = a_dist.rsample()    # sample with reparametrization trick
+        a_dist = tdist.Normal(a_mean, torch.exp(self.logstd))
+        print(torch.exp(self.logstd))
+        a = a_dist.rsample()    # sample with re-parametrization trick
         return a
