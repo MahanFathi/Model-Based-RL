@@ -17,7 +17,7 @@ def do_training(
 
     # get the trainer logger and visdom
     visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
-    visdom.register_keys(['loss'])
+    visdom.register_keys(['reward'])
     logger = setup_logger('agent.train', False)
     logger.info("Start training")
 
@@ -47,13 +47,13 @@ def do_training(
             loss = -torch.sum(rewards)
             batch_rewards.append(-loss.item())
             loss.backward()
-        print("Reward: \t{}".format(np.mean(batch_rewards)))
         optimizer.step()
+        mean_reward = np.mean(batch_rewards)
 
-        # if iteration % cfg.LOG.PERIOD == 0:
-        #     visdom.update({'loss': [loss.item()]})
-        #     logger.info("LOSS: \t{}".format(loss))
-        #
-        # if iteration % cfg.LOG.PLOT.ITER_PERIOD == 0:
-        #     visdom.do_plotting()
+        if iteration % cfg.LOG.PERIOD == 0:
+            visdom.update({'reward': [mean_reward]})
+            logger.info("LOSS: \t{}".format(mean_reward))
+
+        if iteration % cfg.LOG.PLOT.ITER_PERIOD == 0:
+            visdom.do_plotting()
 
