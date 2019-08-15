@@ -55,7 +55,7 @@ _C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 8
 # Solver Configs
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
-_C.SOLVER.EPOCHS = 100
+_C.SOLVER.EPOCHS = 10000
 _C.SOLVER.BATCH_SIZE = 64
 
 _C.SOLVER.BASE_LR = 0.00001

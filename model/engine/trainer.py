@@ -52,7 +52,7 @@ def do_training(
 
         if iteration % cfg.LOG.PERIOD == 0:
             visdom.update({'reward': [mean_reward]})
-            logger.info("LOSS: \t{}".format(mean_reward))
+            logger.info("REWARD: \t{}".format(mean_reward))
 
         if iteration % cfg.LOG.PLOT.ITER_PERIOD == 0:
             visdom.do_plotting()
