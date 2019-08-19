@@ -31,6 +31,8 @@ class Basic(nn.Module):
 
         # get action
         action = self.policy_net(state)
+        if not self.training:
+            return action
         state_action = torch.cat([state, action])
         next_state = self.dynamics_block(state_action)
         reward = self.reward_block(state_action)

@@ -14,7 +14,7 @@ def do_training(
         optimizer,
         device
 ):
-    # set mode to training for model (matters for Dropout, BatchNorm, etc.)
+    # set mode to training for model (aside from policy output, matters for Dropout, BatchNorm, etc.)
     model.train()
 
     # get the trainer logger and visdom
@@ -25,7 +25,6 @@ def do_training(
     logger = setup_logger("agent.train", cfg.OUTPUT.DIR,
                           '{0:%Y-%m-%d %H:%M:%S}_log'.format(datetime.now()))
     logger.info("Start training")
-
     logger.info("Running with config:\n{}".format(cfg))
 
     # build and initialize state experience replay
@@ -35,8 +34,8 @@ def do_training(
                           int(cfg.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM / cfg.SOLVER.BATCH_SIZE)
         state_xr.add_batch(env_init_states)
 
-    gamma = cfg.MUJOCO.GAMMA
     iteration = 0
+    gamma = cfg.MUJOCO.GAMMA
     for _ in range(cfg.SOLVER.EPOCHS):
         optimizer.zero_grad()
         batch_rewards = []
