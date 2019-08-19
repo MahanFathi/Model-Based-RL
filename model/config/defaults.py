@@ -29,8 +29,9 @@ _C.MODEL.POLICY.HOPPER.SOFT_LOWER_STD_THRESHOLD = 1e-1
 # Model Configs
 # ---------------------------------------------------------------------------- #
 _C.MUJOCO = CN()
-_C.MUJOCO.ASSETS_PATH = "./mujoco/assets/"
 _C.MUJOCO.ENV = 'HopperEnv'
+_C.MUJOCO.ASSETS_PATH = "./mujoco/assets/"
+_C.MUJOCO.REWARD_SCALE = 1e-1
 _C.MUJOCO.GAMMA = 0.98
 _C.MUJOCO.HORIZON_STEPS = 100
 _C.MUJOCO.POOL_SIZE = CN()

@@ -10,6 +10,7 @@ from mujoco.utils import mj_forward_factory
 class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self, cfg):
         self.cfg = cfg
+        self.reward_scale = self.cfg.MUJOCO.REWARD_SCALE
         mujoco_assets_dir = os.path.abspath(self.cfg.MUJOCO.ASSETS_PATH)
         mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "hopper.xml"), 4)
         utils.EzPickle.__init__(self)
@@ -22,6 +23,10 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         reward = (posafter - posbefore) / self.dt
         reward += alive_bonus
         reward -= 1e-3 * np.square(a).sum()
+
+        # this part different from gym. scale the reward.
+        reward *= self.reward_scale
+
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
                     (height > .7) and (abs(ang) < .2))
