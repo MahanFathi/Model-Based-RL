@@ -33,6 +33,10 @@ Other:
 * Tested w/ `mujoco200`
 
 ### Usage
+For latest changes:
+```bash
+git clone -b development git@github.com:MahanFathi/Model-Based-RL.git
+```
 Run:
 ```bash
 python3 main.py --config-file ./configs/agent.yaml
