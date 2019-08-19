@@ -1,5 +1,5 @@
 import torch.nn as nn
-from model.layers.feed_forward import FeedForward
+from model.layers import FeedForward
 
 
 class DeterministicPolicy(nn.Module):

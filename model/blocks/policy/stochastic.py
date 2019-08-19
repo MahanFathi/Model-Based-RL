@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.distributions as tdist
 from torch.nn.parameter import Parameter
 from model.blocks.utils import build_soft_lower_bound_fn
-from .deterministic import DeterministicPolicy
+from model.blocks.policy import DeterministicPolicy
 
 
 class StochasticPolicy(nn.Module):

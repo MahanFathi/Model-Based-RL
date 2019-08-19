@@ -4,7 +4,7 @@ import torch
 from model.engine.trainer import do_training
 from mujoco import build_agent
 from model import build_model
-from model.solver import make_optimizer
+from solver import make_optimizer
 from model.config import get_cfg_defaults
 
 

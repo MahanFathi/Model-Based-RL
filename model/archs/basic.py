@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from model.blocks.mujoco import mj_torch_block_factory
-from model.blocks.policy.build import build_policy
+from model.blocks import build_policy, mj_torch_block_factory
 
 
 class Basic(nn.Module):

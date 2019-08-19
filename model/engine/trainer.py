@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 from utils.logger import setup_logger
 from utils.visdom_plots import VisdomLogger
-from .utils.build import build_state_experience_replay
+from model.engine.utils import build_state_experience_replay
 
 
 def do_training(
