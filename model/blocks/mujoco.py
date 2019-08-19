@@ -3,8 +3,8 @@ from torch import autograd
 
 
 def mj_torch_block_factory(agent, mode):
-    mj_forward = agent.forward_factory(mode)
-    mj_gradients = agent.gradient_factory(mode)
+    mj_forward = agent.forward_factory(agent.cfg, mode)
+    mj_gradients = agent.gradient_factory(agent.cfg, mode)
 
     class MjBlock(autograd.Function):
 

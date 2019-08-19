@@ -8,8 +8,9 @@ from mujoco.utils import mj_forward_factory
 
 
 class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self):
-        mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
+    def __init__(self, cfg):
+        self.cfg = cfg
+        mujoco_assets_dir = os.path.abspath(self.cfg.MUJOCO.ASSETS_PATH)
         mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "hopper.xml"), 4)
         utils.EzPickle.__init__(self)
 
@@ -45,27 +46,26 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.viewer.cam.lookat[2] = 1.15
         self.viewer.cam.elevation = -20
 
-    def get_mj_state(self):
-        return self.sim.get_state()
-
     @classmethod
-    def gradient_factory(cls, mode):
+    def gradient_factory(cls, cfg, mode):
         """
+        :param cfg: root config node
         :param mode: 'dynamics' or 'reward'
         :return:
         """
         # TODO: due to dynamics and reward isolation, this isn't the most efficient way to handle this,
         #   lazy, but simple
-        env = cls()
+        env = cls(cfg)
         return mj_gradients_factory(env, mode)
 
     @classmethod
-    def forward_factory(cls, mode):
+    def forward_factory(cls, cfg, mode):
         """
+        :param cfg: root config node
         :param mode: 'dynamics' or 'reward'
         :return:
         """
-        env = cls()
+        env = cls(cfg)
         return mj_forward_factory(env, mode)
 
     def gradient_wrapper(self, mode):
