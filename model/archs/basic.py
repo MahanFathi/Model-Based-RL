@@ -13,7 +13,7 @@ class Basic(nn.Module):
         self.agent = agent
 
         # get policy config
-        env_name = type(self.agent).__name__.split('Env')[0].upper()
+        env_name = self.cfg.MUJOCO.ENV.split('Env')[0].upper()
         self.policy_cfg = getattr(cfg.MODEL.POLICY, env_name)
 
         # build policy net
