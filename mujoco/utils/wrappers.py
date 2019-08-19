@@ -19,7 +19,6 @@ class MjBlockWrapper(gym.Wrapper):
 
     def gradient_factory(self, mode):
         """
-        :param cfg: root config node
         :param mode: 'dynamics' or 'reward'
         :return:
         """
@@ -30,7 +29,6 @@ class MjBlockWrapper(gym.Wrapper):
 
     def forward_factory(self, mode):
         """
-        :param cfg: root config node
         :param mode: 'dynamics' or 'reward'
         :return:
         """
@@ -69,12 +67,6 @@ class MjBlockWrapper(gym.Wrapper):
                 return f
             return wrapper
         return decorator
-
-    def _get_obs(self):
-        return np.concatenate([
-            self.sim.data.qpos.flat,  # full state for model based
-            self.sim.data.qvel.flat,  # full state for model based
-        ])
 
     @staticmethod
     def is_done(state):

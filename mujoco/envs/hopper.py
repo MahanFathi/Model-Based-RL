@@ -5,7 +5,11 @@ from gym.envs.mujoco import mujoco_env
 
 
 class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
-    """COPIED FROM GYM. W/ SLIGHT MODIFICATIONS LIKE READING FROM OWN .XML."""
+    """
+    COPIED FROM GYM. W/ SLIGHT MODIFICATIONS:
+        * READING FROM OWN .XML.
+        * FULL STATE OBSERVATIONS, I.E. QPOS CONCAT'D WITH QVEL.
+    """
 
     def __init__(self):
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
