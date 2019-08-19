@@ -3,8 +3,8 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
-from mujoco.util.backward import mj_gradients_factory
-from mujoco.util.forward import mj_forward_factory
+from mujoco.utils import mj_gradients_factory
+from mujoco.utils import mj_forward_factory
 
 
 class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.distributions as tdist
 from torch.nn.parameter import Parameter
+from model.blocks.utils import build_soft_lower_bound_fn
 from .deterministic import DeterministicPolicy
 
 
@@ -18,8 +19,12 @@ class StochasticPolicy(nn.Module):
         nn.init.zeros_(self.logstd)
         self.logstd.data = abs(self.logstd.data)
 
+        # build soft lower bound function
+        self.soft_lower_bound = build_soft_lower_bound_fn(policy_cfg)
+
     def forward(self, s):
         a_mean = self.mean_net(s)
-        a_std = torch.exp(self.logstd)
+        a_std_raw = torch.exp(self.logstd)
+        a_std = self.soft_lower_bound(a_std_raw)
         a = tdist.Normal(a_mean, a_std).rsample()  # sample with re-parametrization trick
         return a
