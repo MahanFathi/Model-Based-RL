@@ -5,8 +5,6 @@ from copy import deepcopy
 from .forward import mj_forward_factory
 from .backward import mj_gradients_factory
 
-gym.make
-
 
 class MjBlockWrapper(gym.Wrapper):
     """Wrap the forward and backward model. Further used for PyTorch blocks."""
