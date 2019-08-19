@@ -1,3 +1,3 @@
-from .wrappers import MjBlockWrapper
+from .wrappers import MjBlockWrapper, RewardScaler
 
-__all__ = ["MjBlockWrapper"]
+__all__ = ["MjBlockWrapper", "RewardScaler"]
