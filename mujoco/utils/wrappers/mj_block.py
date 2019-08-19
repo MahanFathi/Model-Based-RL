@@ -2,8 +2,8 @@ import gym
 import numpy as np
 from copy import deepcopy
 
-from .forward import mj_forward_factory
-from .backward import mj_gradients_factory
+from mujoco.utils.forward import mj_forward_factory
+from mujoco.utils.backward import mj_gradients_factory
 
 
 class MjBlockWrapper(gym.Wrapper):
@@ -47,7 +47,9 @@ class MjBlockWrapper(gym.Wrapper):
                 # no further reshaping is needed for the case of hopper, also it's mode-agnostic
                 gradients = np.concatenate([dfds, dfda], axis=1)
                 return gradients
+
             return wrapper
+
         return decorator
 
     def forward_wrapper(self, mode):
@@ -63,7 +65,9 @@ class MjBlockWrapper(gym.Wrapper):
                 f = forward_fn(*args, **kwargs)  # next state
                 # no further reshaping is needed for the case of hopper, also it's mode-agnostic
                 return f
+
             return wrapper
+
         return decorator
 
     @staticmethod
@@ -73,13 +77,3 @@ class MjBlockWrapper(gym.Wrapper):
                     (height > .7) and (abs(ang) < .2))
         return done
 
-
-class RewardScaler(gym.RewardWrapper):
-    """Bring rewards to a reasonable scale."""
-
-    def __init__(self, env, scale=0.01):
-        super(RewardScaler, self).__init__(env)
-        self.scale = scale
-
-    def reward(self, reward):
-        return reward * self.scale

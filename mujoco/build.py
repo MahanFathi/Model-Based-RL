@@ -9,4 +9,7 @@ def build_agent(cfg):
         from .utils import RewardScaler
         agent = RewardScaler(agent, cfg.MUJOCO.REWARD_SCALE)
     agent = MjBlockWrapper(agent)
+    if cfg.MUJOCO.CLIP_ACTIONS:
+        from .utils import ClipActionsWrapper
+        agent = ClipActionsWrapper(agent)
     return agent
