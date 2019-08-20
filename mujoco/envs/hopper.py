@@ -49,3 +49,9 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.viewer.cam.lookat[2] = 1.15
         self.viewer.cam.elevation = -20
 
+    @staticmethod
+    def is_done(state):
+        height, ang = state[1:3]
+        done = not (np.isfinite(state).all() and (np.abs(state[2:]) < 100).all() and
+                    (height > .7) and (abs(ang) < .2))
+        return done

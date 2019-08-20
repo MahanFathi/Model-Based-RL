@@ -7,14 +7,20 @@ def do_testing(
         video_recorder,
         first_state=None
 ):
-    state = first_state or agent.reset()
+    if first_state is None:
+        state = agent.reset()
+    else:
+        state = first_state
+        agent.set_from_torch_state(state)
     reward_sum = 0.
-    while True:
+    episode_iteration = 0
+    while episode_iteration < cfg.MUJOCO.HORIZON_STEPS or first_state is None:
+        episode_iteration += 1
         agent.render()
         video_recorder.capture_frame()
         action = model(state)
         state, reward, done, _ = agent.step(action)
         reward_sum += reward
-        if done:
+        if done and first_state is None:
             break
     return reward_sum

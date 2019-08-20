@@ -70,10 +70,3 @@ class MjBlockWrapper(gym.Wrapper):
 
         return decorator
 
-    @staticmethod
-    def is_done(state):
-        height, ang = state[1:3]
-        done = not (np.isfinite(state).all() and (np.abs(state[2:]) < 100).all() and
-                    (height > .7) and (abs(ang) < .2))
-        return done
-
