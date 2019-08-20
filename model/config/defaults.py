@@ -20,8 +20,8 @@ _C.MODEL.WEIGHTS = ""  # should be a path to pth or ckpt file
 _C.MODEL.POLICY = CN()
 _C.MODEL.POLICY.HOPPER = CN()
 _C.MODEL.POLICY.HOPPER.ARCH = "StochasticPolicy"
-_C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32]    # a list of hidden layer sizes for output fc. [] means no hidden
-_C.MODEL.POLICY.HOPPER.NORM_LAYERS = []         # should be a list of layer indices, example [0, 1, ...]
+_C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32, 8]     # a list of hidden layer sizes for output fc. [] means no hidden
+_C.MODEL.POLICY.HOPPER.NORM_LAYERS = [0, 1, 2]             # should be a list of layer indices, example [0, 1, ...]
 _C.MODEL.POLICY.HOPPER.SOFT_LOWER_STD_BOUND = 1e-4
 _C.MODEL.POLICY.HOPPER.SOFT_LOWER_STD_THRESHOLD = 1e-1
 
