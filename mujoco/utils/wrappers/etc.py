@@ -1,4 +1,5 @@
 import gym
+import torch
 import numpy as np
 
 
@@ -21,3 +22,15 @@ class ClipActionsWrapper(gym.Wrapper):
 
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)
+
+
+class TorchTensorWrapper(gym.Wrapper):
+    """Takes care of torch Tensors in step and reset modules."""
+    def step(self, action):
+        action = action.detach().numpy()
+        state, reward, done, info = self.env.step(action)
+        return torch.Tensor(state), reward, done, info
+
+    def reset(self, **kwargs):
+        return torch.Tensor(self.env.reset(**kwargs))
+

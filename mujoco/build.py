@@ -1,5 +1,5 @@
 from mujoco import envs
-from .utils import MjBlockWrapper
+from .utils import MjBlockWrapper, TorchTensorWrapper
 
 
 def build_agent(cfg):
@@ -12,4 +12,5 @@ def build_agent(cfg):
     if cfg.MUJOCO.CLIP_ACTIONS:
         from .utils import ClipActionsWrapper
         agent = ClipActionsWrapper(agent)
+    agent = TorchTensorWrapper(agent)
     return agent

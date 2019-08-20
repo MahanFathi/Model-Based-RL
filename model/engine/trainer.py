@@ -2,6 +2,8 @@ import os
 import torch
 import numpy as np
 from datetime import datetime
+
+from model.engine.tester import do_testing
 from utils.logger import setup_logger
 from utils.visdom_plots import VisdomLogger
 from model.engine.utils import build_state_experience_replay
@@ -19,7 +21,7 @@ def do_training(
 
     # get the trainer logger and visdom
     visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
-    visdom.register_keys(['reward'])
+    visdom.register_keys(['train_reward'])
     if not os.path.isdir(cfg.OUTPUT.DIR):
         os.mkdir(cfg.OUTPUT.DIR)
     logger = setup_logger("agent.train", cfg.OUTPUT.DIR,
@@ -30,9 +32,18 @@ def do_training(
     # build and initialize state experience replay
     state_xr = build_state_experience_replay(cfg)
     for _ in range(cfg.SOLVER.BATCH_SIZE):
-        env_init_states = [torch.Tensor(agent.reset())] * \
+        env_init_states = [agent.reset()] * \
                           int(cfg.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM / cfg.SOLVER.BATCH_SIZE)
         state_xr.add_batch(env_init_states)
+
+    # wrap screen recorder if testing mode is on
+    if cfg.LOG.TESTING.ON:
+        visdom.register_keys(['test_reward'])
+        # NOTE: wrappers here won't affect the PyTorch MuJoCo blocks
+        from gym.wrappers.monitoring.video_recorder import VideoRecorder
+        output_rec_dir = os.path.join(cfg.OUTPUT.DIR, '{0:%Y-%m-%d %H:%M:%S}_rec'.format(datetime.now()))
+        os.mkdir(output_rec_dir)
+        video_recorder = VideoRecorder(agent)
 
     iteration = 0
     gamma = cfg.MUJOCO.GAMMA
@@ -42,7 +53,6 @@ def do_training(
         for _ in range(cfg.SOLVER.BATCH_SIZE):
             decay = gamma ** 0
             rewards = torch.Tensor()
-            # state = torch.Tensor(agent.reset())
             state = state_xr.get_item()
             for _ in range(cfg.MUJOCO.HORIZON_STEPS):
                 iteration += 1
@@ -57,9 +67,30 @@ def do_training(
         mean_reward = np.mean(batch_rewards)
 
         if iteration % cfg.LOG.PERIOD == 0:
-            visdom.update({'reward': [mean_reward]})
-            logger.info("REWARD: \t{}".format(mean_reward))
+            visdom.update({'train_reward': [mean_reward]})
+            logger.info("REWARD: \t\t{}".format(mean_reward))
 
         if iteration % cfg.LOG.PLOT.ITER_PERIOD == 0:
             visdom.do_plotting()
+
+        if cfg.LOG.TESTING.ON:
+            if iteration % cfg.LOG.TESTING.ITER_PERIOD == 0:
+                logger.info("TESTING ... ")
+                model.eval()
+                video_recorder.path = os.path.join(output_rec_dir, "iter_{}.mp4".format(iteration))
+                test_rewards = []
+                for _ in range(cfg.LOG.TESTING.COUNT_PER_ITER):
+                    test_reward = do_testing(
+                        cfg,
+                        model,
+                        agent,
+                        video_recorder
+                    )
+                    test_rewards.append(test_reward)
+                mean_reward = np.mean(test_rewards)
+                visdom.update({'test_reward': [np.mean(mean_reward)]})
+                logger.info("REWARD MEAN TEST: \t\t{}".format(mean_reward))
+                model.train()
+                video_recorder.close()
+
 
