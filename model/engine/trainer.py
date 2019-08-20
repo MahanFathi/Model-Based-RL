@@ -54,12 +54,15 @@ def do_training(
             decay = gamma ** 0
             rewards = torch.Tensor()
             state = state_xr.get_item()
-            for _ in range(cfg.MUJOCO.HORIZON_STEPS):
+            for _ in range(cfg.MUJOCO.MAX_HORIZON_STEPS):
                 iteration += 1
                 state, reward = model(state)
-                state_xr.add(state.detach())
                 rewards = torch.cat([rewards, decay * reward])
                 decay *= gamma
+                if agent.is_done(state):
+                    break
+                else:
+                    state_xr.add(state.detach())
             loss = -torch.sum(rewards)
             batch_rewards.append(-loss.item())
             loss.backward()

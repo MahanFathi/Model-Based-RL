@@ -14,7 +14,7 @@ def do_testing(
         agent.set_from_torch_state(state)
     reward_sum = 0.
     episode_iteration = 0
-    while episode_iteration < cfg.MUJOCO.HORIZON_STEPS or first_state is None:
+    while episode_iteration < cfg.MUJOCO.MAX_HORIZON_STEPS or first_state is None:
         episode_iteration += 1
         agent.render()
         video_recorder.capture_frame()

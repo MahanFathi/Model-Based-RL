@@ -39,3 +39,7 @@ class TorchTensorWrapper(gym.Wrapper):
         qpos, qvel = np.split(state.detach().numpy(), 2)
         self.env.set_state(qpos, qvel)
 
+    def is_done(self, state):
+        state = state.detach().numpy()
+        return self.env.is_done(state)
+
