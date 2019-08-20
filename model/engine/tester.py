@@ -5,8 +5,9 @@ def do_testing(
         model,
         agent,
         video_recorder,
+        first_state=None
 ):
-    state = agent.reset()
+    state = first_state or agent.reset()
     reward_sum = 0.
     while True:
         agent.render()

@@ -84,7 +84,8 @@ def do_training(
                         cfg,
                         model,
                         agent,
-                        video_recorder
+                        video_recorder,
+                        first_state=state_xr.get_item(),
                     )
                     test_rewards.append(test_reward)
                 mean_reward = np.mean(test_rewards)
