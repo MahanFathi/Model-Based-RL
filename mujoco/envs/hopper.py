@@ -9,6 +9,7 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     COPIED FROM GYM. W/ SLIGHT MODIFICATIONS:
         * READING FROM OWN .XML.
         * FULL STATE OBSERVATIONS, I.E. QPOS CONCAT'D WITH QVEL.
+        * is_done METHOD SHOULD BE IMPLEMENTED
     """
 
     def __init__(self):

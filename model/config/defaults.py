@@ -18,18 +18,28 @@ _C.MODEL.WEIGHTS = ""  # should be a path to pth or ckpt file
 # __Policy Net Configs
 # ---------------------------------------------------------------------------- #
 _C.MODEL.POLICY = CN()
+
+####################        HOPPER          ####################
 _C.MODEL.POLICY.HOPPER = CN()
 _C.MODEL.POLICY.HOPPER.ARCH = "StochasticPolicy"
-_C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32, 8]     # a list of hidden layer sizes for output fc. [] means no hidden
-_C.MODEL.POLICY.HOPPER.NORM_LAYERS = [0, 1, 2]             # should be a list of layer indices, example [0, 1, ...]
+_C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32, 8]  # a list of hidden layer sizes for output fc. [] means no hidden
+_C.MODEL.POLICY.HOPPER.NORM_LAYERS = [0, 1, 2]  # should be a list of layer indices, example [0, 1, ...]
 _C.MODEL.POLICY.HOPPER.SOFT_LOWER_STD_BOUND = 1e-4
 _C.MODEL.POLICY.HOPPER.SOFT_LOWER_STD_THRESHOLD = 1e-1
+
+####################    INVERTED PENDULUM   ####################
+_C.MODEL.POLICY.INVERTEDPENDULUM = CN()
+_C.MODEL.POLICY.INVERTEDPENDULUM.ARCH = "DeterministicPolicy"
+_C.MODEL.POLICY.INVERTEDPENDULUM.LAYERS = [64, 32, 8]  # a list of hidden layer sizes for output fc. [] means no hidden
+_C.MODEL.POLICY.INVERTEDPENDULUM.NORM_LAYERS = [0, 1]  # should be a list of layer indices, example [0, 1, ...]
+_C.MODEL.POLICY.INVERTEDPENDULUM.SOFT_LOWER_STD_BOUND = 1e-4
+_C.MODEL.POLICY.INVERTEDPENDULUM.SOFT_LOWER_STD_THRESHOLD = 1e-1
 
 # ---------------------------------------------------------------------------- #
 # Model Configs
 # ---------------------------------------------------------------------------- #
 _C.MUJOCO = CN()
-_C.MUJOCO.ENV = 'HopperEnv'
+_C.MUJOCO.ENV = 'InvertedPendulumEnv'
 _C.MUJOCO.ASSETS_PATH = "./mujoco/assets/"
 _C.MUJOCO.REWARD_SCALE = 1e-1
 _C.MUJOCO.CLIP_ACTIONS = True
@@ -84,7 +94,7 @@ _C.LOG.PLOT.DISPLAY_PORT = 8097
 _C.LOG.PLOT.ITER_PERIOD = 1000  # effective plotting step is _C.LOG.PERIOD * LOG.PLOT.ITER_PERIOD
 _C.LOG.TESTING = CN()
 _C.LOG.TESTING.ON = True
-_C.LOG.TESTING.ITER_PERIOD = 10000
+_C.LOG.TESTING.ITER_PERIOD = 1000
 _C.LOG.TESTING.COUNT_PER_ITER = 10
 
 
