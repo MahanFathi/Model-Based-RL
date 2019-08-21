@@ -12,12 +12,8 @@ class Basic(nn.Module):
         self.cfg = cfg
         self.agent = agent
 
-        # get policy config
-        env_name = self.cfg.MUJOCO.ENV.split('Env')[0].upper()
-        self.policy_cfg = getattr(cfg.MODEL.POLICY, env_name)
-
         # build policy net
-        self.policy_net = build_policy(self.policy_cfg, self.agent)
+        self.policy_net = build_policy(cfg.MODEL.POLICY, self.agent)
 
         # build forward dynamics block
         self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply

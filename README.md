@@ -35,5 +35,5 @@ Other:
 ### Usage
 Run:
 ```bash
-python3 main.py --config-file ./configs/agent.yaml
+python3 main.py --config-file ./configs/hopper.yaml
 ```

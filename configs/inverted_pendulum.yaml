@@ -1,9 +1,16 @@
-MODEL:
-  META_ARCHITECTURE: 'Basic'
 MUJOCO:
   ENV: 'InvertedPendulumEnv'
   MAX_HORIZON_STEPS: 100
   CLIP_ACTIONS: false
+  GAMMA: 0.95
+MODEL:
+  META_ARCHITECTURE: 'Basic'
+  POLICY:
+    LAYERS:
+      - 64
+      - 64
+      - 32
+      - 8
 SOLVER:
   BASE_LR: 0.0005
   WEIGHT_DECAY: 0.001
