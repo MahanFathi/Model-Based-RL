@@ -43,9 +43,9 @@ _C.MUJOCO.POOL_SIZE.REWARD = 4
 # Experience Replay
 # ---------------------------------------------------------------------------- #
 _C.EXPERIENCE_REPLAY = CN()
-_C.EXPERIENCE_REPLAY.SIZE = 2 ** 14
+_C.EXPERIENCE_REPLAY.SIZE = 2 ** 12
 _C.EXPERIENCE_REPLAY.SHUFFLE = True
-_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 13
+_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 11
 
 # ---------------------------------------------------------------------------- #
 # Solver Configs

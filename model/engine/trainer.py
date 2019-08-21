@@ -95,6 +95,6 @@ def do_training(
                 visdom.update({'test_reward': [np.mean(mean_reward)]})
                 logger.info("REWARD MEAN TEST: \t\t{}".format(mean_reward))
                 model.train()
-                video_recorder.close()
+                # video_recorder.close()
 
 

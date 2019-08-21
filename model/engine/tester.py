@@ -17,7 +17,7 @@ def do_testing(
     while episode_iteration < cfg.MUJOCO.MAX_HORIZON_STEPS or first_state is None:
         episode_iteration += 1
         agent.render()
-        video_recorder.capture_frame()
+        # video_recorder.capture_frame()
         action = model(state)
         state, reward, done, _ = agent.step(action)
         reward_sum += reward
