@@ -7,12 +7,14 @@ MODEL:
   META_ARCHITECTURE: 'Basic'
   POLICY:
     LAYERS:
-      - 64
-      - 64
       - 32
+      - 16
       - 8
+    NORM_LAYERS:
+      - 0
+      - 1
 SOLVER:
-  BASE_LR: 0.0005
-  WEIGHT_DECAY: 0.001
+  BASE_LR: 0.0001
+  WEIGHT_DECAY: 0.0005
   BIAS_LR_FACTOR: 2
-  BATCH_SIZE: 32
+  BATCH_SIZE: 8
