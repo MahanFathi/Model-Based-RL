@@ -39,5 +39,5 @@ git clone -b development git@github.com:MahanFathi/Model-Based-RL.git
 ```
 Run:
 ```bash
-python3 main.py --config-file ./configs/agent.yaml
+python3 main.py --config-file ./configs/hopper.yaml
 ```

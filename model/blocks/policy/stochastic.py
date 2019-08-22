@@ -24,6 +24,8 @@ class StochasticPolicy(nn.Module):
 
     def forward(self, s):
         a_mean = self.mean_net(s)
+        if not self.training:
+            return a_mean
         a_std_raw = torch.exp(self.logstd)
         a_std = self.soft_lower_bound(a_std_raw)
         a = tdist.Normal(a_mean, a_std).rsample()  # sample with re-parametrization trick

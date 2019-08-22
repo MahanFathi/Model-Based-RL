@@ -44,6 +44,8 @@ class VisdomLogger(dict):
         for k in self.keys():
             y_values = np.array(self[k])
             x_values = np.arange(len(self[k]))
+            if len(x_values) < 1:
+                continue
             self.visdom.line(Y=y_values, X=x_values, win=self.plot_attributes[k]['win_id'],
                              opts={'title': k.upper()}, update='append')
             # self[k] = []

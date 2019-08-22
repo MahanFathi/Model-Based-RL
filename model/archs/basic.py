@@ -12,12 +12,8 @@ class Basic(nn.Module):
         self.cfg = cfg
         self.agent = agent
 
-        # get policy config
-        env_name = type(self.agent).__name__.split('Env')[0].upper()
-        self.policy_cfg = getattr(cfg.MODEL.POLICY, env_name)
-
         # build policy net
-        self.policy_net = build_policy(self.policy_cfg, self.agent)
+        self.policy_net = build_policy(cfg.MODEL.POLICY, self.agent)
 
         # build forward dynamics block
         self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
@@ -31,6 +27,8 @@ class Basic(nn.Module):
 
         # get action
         action = self.policy_net(state)
+        if not self.training:
+            return action
         state_action = torch.cat([state, action])
         next_state = self.dynamics_block(state_action)
         reward = self.reward_block(state_action)

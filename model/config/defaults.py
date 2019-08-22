@@ -18,22 +18,24 @@ _C.MODEL.WEIGHTS = ""  # should be a path to pth or ckpt file
 # __Policy Net Configs
 # ---------------------------------------------------------------------------- #
 _C.MODEL.POLICY = CN()
-_C.MODEL.POLICY.HOPPER = CN()
-_C.MODEL.POLICY.HOPPER.ARCH = "StochasticPolicy"
-_C.MODEL.POLICY.HOPPER.LAYERS = [64, 64, 32]    # a list of hidden layer sizes for output fc. [] means no hidden
-_C.MODEL.POLICY.HOPPER.NORM_LAYERS = []         # should be a list of layer indices, example [0, 1, ...]
-_C.MODEL.POLICY.HOPPER.SOFT_LOWER_STD_BOUND = 1e-4
-_C.MODEL.POLICY.HOPPER.SOFT_LOWER_STD_THRESHOLD = 1e-1
+
+_C.MODEL.POLICY = CN()
+_C.MODEL.POLICY.ARCH = "StochasticPolicy"
+_C.MODEL.POLICY.LAYERS = [64, 64, 32, 8]  # a list of hidden layer sizes for output fc. [] means no hidden
+_C.MODEL.POLICY.NORM_LAYERS = [0, 1, 2]  # should be a list of layer indices, example [0, 1, ...]
+_C.MODEL.POLICY.SOFT_LOWER_STD_BOUND = 1e-4
+_C.MODEL.POLICY.SOFT_LOWER_STD_THRESHOLD = 1e-1
 
 # ---------------------------------------------------------------------------- #
 # Model Configs
 # ---------------------------------------------------------------------------- #
 _C.MUJOCO = CN()
-_C.MUJOCO.ENV = 'HopperEnv'
+_C.MUJOCO.ENV = 'InvertedPendulumEnv'
 _C.MUJOCO.ASSETS_PATH = "./mujoco/assets/"
 _C.MUJOCO.REWARD_SCALE = 1e-1
+_C.MUJOCO.CLIP_ACTIONS = True
 _C.MUJOCO.GAMMA = 0.98
-_C.MUJOCO.HORIZON_STEPS = 100
+_C.MUJOCO.MAX_HORIZON_STEPS = 100
 _C.MUJOCO.POOL_SIZE = CN()
 _C.MUJOCO.POOL_SIZE.DYNAMICS = 4
 _C.MUJOCO.POOL_SIZE.REWARD = 4
@@ -42,9 +44,9 @@ _C.MUJOCO.POOL_SIZE.REWARD = 4
 # Experience Replay
 # ---------------------------------------------------------------------------- #
 _C.EXPERIENCE_REPLAY = CN()
-_C.EXPERIENCE_REPLAY.SIZE = 2 ** 14
+_C.EXPERIENCE_REPLAY.SIZE = 2 ** 12
 _C.EXPERIENCE_REPLAY.SHUFFLE = True
-_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 13
+_C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 11
 
 # ---------------------------------------------------------------------------- #
 # Solver Configs
@@ -81,6 +83,10 @@ _C.LOG.PERIOD = 100
 _C.LOG.PLOT = CN()
 _C.LOG.PLOT.DISPLAY_PORT = 8097
 _C.LOG.PLOT.ITER_PERIOD = 1000  # effective plotting step is _C.LOG.PERIOD * LOG.PLOT.ITER_PERIOD
+_C.LOG.TESTING = CN()
+_C.LOG.TESTING.ON = True
+_C.LOG.TESTING.ITER_PERIOD = 1000
+_C.LOG.TESTING.COUNT_PER_ITER = 10
 
 
 def get_cfg_defaults():

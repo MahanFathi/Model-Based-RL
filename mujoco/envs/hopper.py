@@ -3,15 +3,17 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
-from mujoco.utils import mj_gradients_factory
-from mujoco.utils import mj_forward_factory
-
 
 class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, cfg):
-        self.cfg = cfg
-        self.reward_scale = self.cfg.MUJOCO.REWARD_SCALE
-        mujoco_assets_dir = os.path.abspath(self.cfg.MUJOCO.ASSETS_PATH)
+    """
+    COPIED FROM GYM. W/ SLIGHT MODIFICATIONS:
+        * READING FROM OWN .XML.
+        * FULL STATE OBSERVATIONS, I.E. QPOS CONCAT'D WITH QVEL.
+        * is_done METHOD SHOULD BE IMPLEMENTED
+    """
+
+    def __init__(self):
+        mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
         mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "hopper.xml"), 4)
         utils.EzPickle.__init__(self)
 
@@ -23,10 +25,6 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         reward = (posafter - posbefore) / self.dt
         reward += alive_bonus
         reward -= 1e-3 * np.square(a).sum()
-
-        # this part different from gym. scale the reward.
-        reward *= self.reward_scale
-
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
                     (height > .7) and (abs(ang) < .2))
@@ -34,6 +32,7 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         return ob, reward, done, {}
 
     def _get_obs(self):
+        """DIFFERENT FROM ORIGINAL GYM"""
         return np.concatenate([
             self.sim.data.qpos.flat,  # this part different from gym. expose the whole thing.
             self.sim.data.qvel.flat,  # this part different from gym. clip nothing.
@@ -50,61 +49,6 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.viewer.cam.distance = self.model.stat.extent * 0.75
         self.viewer.cam.lookat[2] = 1.15
         self.viewer.cam.elevation = -20
-
-    @classmethod
-    def gradient_factory(cls, cfg, mode):
-        """
-        :param cfg: root config node
-        :param mode: 'dynamics' or 'reward'
-        :return:
-        """
-        # TODO: due to dynamics and reward isolation, this isn't the most efficient way to handle this,
-        #   lazy, but simple
-        env = cls(cfg)
-        return mj_gradients_factory(env, mode)
-
-    @classmethod
-    def forward_factory(cls, cfg, mode):
-        """
-        :param cfg: root config node
-        :param mode: 'dynamics' or 'reward'
-        :return:
-        """
-        env = cls(cfg)
-        return mj_forward_factory(env, mode)
-
-    def gradient_wrapper(self, mode):
-        """
-        Decorator for making gradients be the same size the observations for example.
-        :param mode: either 'dynamics' or 'reward'
-        :return:
-        """
-
-        # mode agnostic for now
-        def decorator(gradients_fn):
-            def wrapper(*args, **kwargs):
-                dfds, dfda = gradients_fn(*args, **kwargs)
-                # no further reshaping is needed for the case of hopper, also it's mode-agnostic
-                gradients = np.concatenate([dfds, dfda], axis=1)
-                return gradients
-            return wrapper
-        return decorator
-
-    def forward_wrapper(self, mode):
-        """
-        Decorator for making gradients be the same size the observations for example.
-        :param mode: either 'dynamics' or 'reward'
-        :return:
-        """
-
-        # mode agnostic for now
-        def decorator(forward_fn):
-            def wrapper(*args, **kwargs):
-                f = forward_fn(*args, **kwargs)  # next state
-                # no further reshaping is needed for the case of hopper, also it's mode-agnostic
-                return f
-            return wrapper
-        return decorator
 
     @staticmethod
     def is_done(state):
