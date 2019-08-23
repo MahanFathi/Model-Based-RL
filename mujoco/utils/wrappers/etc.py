@@ -11,7 +11,10 @@ class RewardScaler(gym.RewardWrapper):
         self.scale = scale
 
     def reward(self, reward):
-        return reward * self.scale
+        return self.scale * reward
+
+    def torch_reward(self, state, action, next_state):
+        return self.scale * self.env.torch_reward(state, action, next_state)
 
 
 class ClipActionsWrapper(gym.Wrapper):

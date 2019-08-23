@@ -1,4 +1,5 @@
 import os
+import torch
 import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
@@ -47,3 +48,12 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def is_done(state):
         done = False
         return done
+
+    def tensor_reward(self, state, action, next_state):
+        """DIFFERENT FROM ORIGINAL GYM"""
+        xposbefore = state[0]
+        xposafter = next_state[0]
+        reward_ctrl = - 0.1 * torch.sum(torch.mul(action, action))
+        reward_run = (xposafter - xposbefore) / self.dt
+        reward = reward_ctrl + reward_run
+        return reward.view([1, ])

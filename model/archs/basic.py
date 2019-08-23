@@ -17,7 +17,7 @@ class Basic(nn.Module):
 
         # build forward dynamics block
         self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
-        self.reward_block = mj_torch_block_factory(agent, 'reward').apply
+        # self.reward_block = mj_torch_block_factory(agent, 'reward').apply
 
     def forward(self, state):
         """Single pass.
@@ -31,5 +31,6 @@ class Basic(nn.Module):
             return action
         state_action = torch.cat([state, action])
         next_state = self.dynamics_block(state_action)
-        reward = self.reward_block(state_action)
+        # reward = self.reward_block(state_action)
+        reward = self.agent.tensor_reward(state, action, next_state)
         return next_state, reward

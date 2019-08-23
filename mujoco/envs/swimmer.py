@@ -1,4 +1,5 @@
 import os
+import torch
 import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
@@ -44,3 +45,13 @@ class SwimmerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def is_done(state):
         done = False
         return done
+
+    def tensor_reward(self, state, action, next_state):
+        """DIFFERENT FROM ORIGINAL GYM"""
+        ctrl_cost_coeff = 0.0001
+        xposbefore = state[0]
+        xposafter = next_state[0]
+        reward_fwd = (xposafter - xposbefore) / self.dt
+        reward_ctrl = - ctrl_cost_coeff * torch.sum(torch.mul(action, action))
+        reward = reward_fwd + reward_ctrl
+        return reward.view([1, ])
