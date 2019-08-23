@@ -2,3 +2,4 @@
 __pycache__
 output/
 MUJOCO_LOG.TXT
+.pytest_cache
