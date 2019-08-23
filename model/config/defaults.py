@@ -52,7 +52,7 @@ _C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 11
 # Solver Configs
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
-_C.SOLVER.EPOCHS = 10000
+_C.SOLVER.EPOCHS = 100000
 _C.SOLVER.BATCH_SIZE = 64
 
 _C.SOLVER.BASE_LR = 0.00001
@@ -87,7 +87,7 @@ _C.LOG.PLOT.ITER_PERIOD = 1000  # effective plotting step is _C.LOG.PERIOD * LOG
 _C.LOG.TESTING = CN()
 _C.LOG.TESTING.ON = True
 _C.LOG.TESTING.ITER_PERIOD = 1000
-_C.LOG.TESTING.COUNT_PER_ITER = 10
+_C.LOG.TESTING.COUNT_PER_ITER = 2
 
 
 def get_cfg_defaults():
