@@ -9,9 +9,11 @@ MODEL:
     LAYERS:
       - 32
       - 32
+      - 16
       - 8
     NORM_LAYERS:
       - 0
+      - 1
 SOLVER:
   BASE_LR: 0.001
   WEIGHT_DECAY: 0.001

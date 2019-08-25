@@ -8,6 +8,7 @@ MODEL:
   POLICY:
     LAYERS:
       - 64
+      - 32
       - 16
       - 8
 SOLVER:
