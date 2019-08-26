@@ -14,7 +14,7 @@ Directly back-propagate into your policy network, from model jacobians calculate
      +----------+S0+----------+              +----------+S1+----------+
      |                        |              |                        |
      |    +------+   A0   +---v----+         +    +------+   A1   +---v----+
-S0+------>+Policy+---+--->+Dynamics+---+---+S1+-->+Policy+---+--->+Dynamics+--->+2  ...
+S0+------>+Policy+---+--->+Dynamics+---+---+S1+-->+Policy+---+--->+Dynamics+--->S2  ...
      |    +------+   |    +--------+   |     +    +------+   |    +--------+    |
      |               |                 |     |               |                  |
      |            +--v---+             |     |            +--v---+              |
