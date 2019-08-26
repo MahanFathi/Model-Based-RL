@@ -53,16 +53,17 @@ def do_training(
         for _ in range(cfg.SOLVER.BATCH_SIZE):
             decay = gamma ** 0
             episode_reward = 0.
-            state = state_xr.get_item()
+            # state = state_xr.get_item()
+            state = agent.reset()
             for _ in range(cfg.MUJOCO.MAX_HORIZON_STEPS):
                 iteration += 1
                 state, reward = model(state)
                 episode_reward += decay * reward
                 decay *= gamma
-                if agent.is_done(state):
-                    break
-                else:
-                    state_xr.add(state.detach())
+                # if agent.is_done(state):
+                #     break
+                # else:
+                #     state_xr.add(state.detach())
             loss = -episode_reward
             batch_rewards.append(-loss.item())
             loss.backward()
@@ -88,13 +89,13 @@ def do_training(
                         model,
                         agent,
                         video_recorder,
-                        first_state=state_xr.get_item(),
+                        # first_state=state_xr.get_item(),
                     )
                     test_rewards.append(test_reward)
                 mean_reward = np.mean(test_rewards)
                 visdom.update({'test_reward': [np.mean(mean_reward)]})
                 logger.info("REWARD MEAN TEST: \t\t{}".format(mean_reward))
                 model.train()
-                video_recorder.close()
+                # video_recorder.close()
 
 
