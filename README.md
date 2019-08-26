@@ -11,14 +11,14 @@ Directly back-propagate into your policy network, from model jacobians calculate
 
 ### Vanilla Computation Graph
 ```txt
-     +-----------S0-----------+              +-----------S1-----------+
+     +----------+S0+----------+              +----------+S1+----------+
      |                        |              |                        |
-     |    +------+   A0   +---v----+         |    +------+   A1   +---v----+
-S0+------>+Policy+---+--->+Dynamics+--------S1--->+Policy+---+--->+Dynamics+--->S2  ...
-     |    +------+   |    +--------+         |    +------+   |    +--------+
-     |               |                       |               |
-     |            +--v---+                   |            +--v---+
-     +----S0----->+Reward|                   +----S1----->+Reward|
+     |    +------+   A0   +---v----+         +    +------+   A1   +---v----+
+S0+------>+Policy+---+--->+Dynamics+---+---+S1+-->+Policy+---+--->+Dynamics+--->+2  ...
+     |    +------+   |    +--------+   |     +    +------+   |    +--------+    |
+     |               |                 |     |               |                  |
+     |            +--v---+             |     |            +--v---+              |
+     +---+S0+---->+Reward+<-----S1-----+     +---+S1+---->+Reward+<-----S2------+
                   +------+                                +------+
 ```
 
@@ -39,5 +39,5 @@ git clone -b development git@github.com:MahanFathi/Model-Based-RL.git
 ```
 Run:
 ```bash
-python3 main.py --config-file ./configs/hopper.yaml
+python3 main.py --config-file ./configs/inverted_pendulum.yaml
 ```

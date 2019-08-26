@@ -32,7 +32,7 @@ class FeedForward(nn.Module):
         self._layers = OrderedDict()
         for i, (in_size, out_size) in enumerate(pairwise(self._sizes)):
             # Add linear layer
-            linear_layer = nn.Linear(in_size, out_size, bias=False)
+            linear_layer = nn.Linear(in_size, out_size, bias=True)
             self.__setattr__('linear_layer_{}'.format(str(i)), linear_layer)
             self._layers.update({'linear_layer_{}'.format(str(i)): linear_layer})
             # Add batch normalization layer

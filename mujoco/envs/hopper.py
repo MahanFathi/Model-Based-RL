@@ -1,4 +1,5 @@
 import os
+import torch
 import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
@@ -10,6 +11,7 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         * READING FROM OWN .XML.
         * FULL STATE OBSERVATIONS, I.E. QPOS CONCAT'D WITH QVEL.
         * is_done METHOD SHOULD BE IMPLEMENTED
+        * torch implementation of reward function
     """
 
     def __init__(self):
@@ -56,3 +58,13 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         done = not (np.isfinite(state).all() and (np.abs(state[2:]) < 100).all() and
                     (height > .7) and (abs(ang) < .2))
         return done
+
+    def tensor_reward(self, state, action, next_state):
+        """DIFFERENT FROM ORIGINAL GYM"""
+        posbefore = state[0]
+        posafter, height, ang = next_state[0:3]
+        alive_bonus = 1.0
+        reward = (posafter - posbefore) / self.dt
+        reward += alive_bonus
+        reward -= 1e-3 * torch.sum(torch.mul(action, action))
+        return reward.view([1, ])

@@ -12,6 +12,9 @@ def make_optimizer(cfg, model):
         if "bias" in key:
             lr = cfg.SOLVER.BASE_LR * cfg.SOLVER.BIAS_LR_FACTOR
             weight_decay = cfg.SOLVER.WEIGHT_DECAY_BIAS
+        if "std" in key:
+            lr = cfg.SOLVER.BASE_LR * cfg.SOLVER.STD_LR_FACTOR
+            weight_decay = 0.
         params += [{"params": [value], "lr": lr, "weight_decay": weight_decay}]
 
     # optimizer = torch.optim.SGD(params, lr, momentum=cfg.SOLVER.MOMENTUM)

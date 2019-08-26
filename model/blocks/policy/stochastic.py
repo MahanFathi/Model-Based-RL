@@ -19,6 +19,8 @@ class StochasticPolicy(nn.Module):
         nn.init.zeros_(self.logstd)
         self.logstd.data = abs(self.logstd.data)
 
+        self.std_scaler = policy_cfg.STD_SCALER
+
         # build soft lower bound function
         self.soft_lower_bound = build_soft_lower_bound_fn(policy_cfg)
 
@@ -26,7 +28,7 @@ class StochasticPolicy(nn.Module):
         a_mean = self.mean_net(s)
         if not self.training:
             return a_mean
-        a_std_raw = torch.exp(self.logstd)
+        a_std_raw = torch.exp(self.logstd) * self.std_scaler
         a_std = self.soft_lower_bound(a_std_raw)
         a = tdist.Normal(a_mean, a_std).rsample()  # sample with re-parametrization trick
         return a
