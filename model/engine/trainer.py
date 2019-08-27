@@ -19,13 +19,17 @@ def do_training(
     # set mode to training for model (aside from policy output, matters for Dropout, BatchNorm, etc.)
     model.train()
 
+    # output directories
+    env_output_dir = os.path.join(cfg.OUTPUT.DIR, cfg.MUJOCO.ENV)
+    output_dir = os.path.join(env_output_dir, "{0:%Y-%m-%d %H:%M:%S}".format(datetime.now()))
+    output_rec_dir = os.path.join(output_dir, 'recordings')
+    output_weights_dir = os.path.join(output_dir, 'weights')
+    os.makedirs(output_dir)
+    os.mkdir(output_weights_dir)
     # get the trainer logger and visdom
     visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
     visdom.register_keys(['train_reward'])
-    if not os.path.isdir(cfg.OUTPUT.DIR):
-        os.mkdir(cfg.OUTPUT.DIR)
-    logger = setup_logger("agent.train", cfg.OUTPUT.DIR,
-                          '{0:%Y-%m-%d %H:%M:%S}_log'.format(datetime.now()))
+    logger = setup_logger("model.engine.trainer", output_dir, 'logs')
     logger.info("Start training")
     logger.info("Running with config:\n{}".format(cfg))
 
@@ -41,7 +45,6 @@ def do_training(
         visdom.register_keys(['test_reward'])
         # NOTE: wrappers here won't affect the PyTorch MuJoCo blocks
         from gym.wrappers.monitoring.video_recorder import VideoRecorder
-        output_rec_dir = os.path.join(cfg.OUTPUT.DIR, '{0:%Y-%m-%d %H:%M:%S}_rec'.format(datetime.now()))
         os.mkdir(output_rec_dir)
         video_recorder = VideoRecorder(agent)
 
@@ -76,6 +79,10 @@ def do_training(
 
         if iteration % cfg.LOG.PLOT.ITER_PERIOD == 0:
             visdom.do_plotting()
+
+        if iteration % cfg.LOG.CHECKPOINT_PERIOD == 0:
+            torch.save(model.state_dict(),
+                       os.path.join(output_weights_dir, 'iter_{}.pth'.format(iteration)))
 
         if cfg.LOG.TESTING.ON:
             if iteration % cfg.LOG.TESTING.ITER_PERIOD == 0:

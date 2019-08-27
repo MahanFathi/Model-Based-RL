@@ -1,4 +1,3 @@
-import os
 from yacs.config import CfgNode as CN
 
 # ---------------------------------------------------------------------------- #
@@ -12,7 +11,7 @@ _C = CN()
 _C.MODEL = CN()
 _C.MODEL.META_ARCHITECTURE = 'Basic'
 _C.MODEL.DEVICE = "cpu"
-_C.MODEL.WEIGHTS = ""  # should be a path to pth or ckpt file
+_C.MODEL.WEIGHTS = ""  # should be a path to .pth pytorch state dict file
 
 # ---------------------------------------------------------------------------- #
 # __Policy Net Configs
@@ -65,12 +64,6 @@ _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0005
 _C.SOLVER.WEIGHT_DECAY_BIAS = 0
 
-_C.SOLVER.GAMMA = 0.1
-_C.SOLVER.STEPS = (30000,)
-
-_C.SOLVER.CHECKPOINT_PERIOD = 2500
-_C.SOLVER.CHECKPOINT_PATH = os.path.join('.', 'checkpoints')
-
 # ---------------------------------------------------------------------------- #
 # Output Configs
 # ---------------------------------------------------------------------------- #
@@ -89,6 +82,7 @@ _C.LOG.TESTING = CN()
 _C.LOG.TESTING.ON = True
 _C.LOG.TESTING.ITER_PERIOD = 1000
 _C.LOG.TESTING.COUNT_PER_ITER = 2
+_C.LOG.CHECKPOINT_PERIOD = 25000
 
 
 def get_cfg_defaults():
