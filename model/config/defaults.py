@@ -37,8 +37,6 @@ _C.MUJOCO.CLIP_ACTIONS = True
 _C.MUJOCO.GAMMA = 0.98
 _C.MUJOCO.MAX_HORIZON_STEPS = 100
 _C.MUJOCO.POOL_SIZE = CN()
-_C.MUJOCO.POOL_SIZE.DYNAMICS = 4
-_C.MUJOCO.POOL_SIZE.REWARD = 4
 
 # ---------------------------------------------------------------------------- #
 # Experience Replay

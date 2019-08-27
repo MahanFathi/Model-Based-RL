@@ -6,14 +6,17 @@ MUJOCO:
 MODEL:
   META_ARCHITECTURE: 'Basic'
   POLICY:
+    ARCH: 'StochasticPolicy'
     LAYERS:
       - 64
       - 32
       - 16
+      - 16
       - 8
+    STD_SCALER: 1.0
 SOLVER:
-  BASE_LR: 0.0001
+  BASE_LR: 0.01
   WEIGHT_DECAY: 0.001
   BIAS_LR_FACTOR: 2
   STD_LR_FACTOR: 0.5
-  BATCH_SIZE: 8
+  BATCH_SIZE: 16

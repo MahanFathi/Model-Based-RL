@@ -22,7 +22,7 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.do_simulation(action, self.frame_skip)
         xposafter = self.sim.data.qpos[0]
         ob = self._get_obs()
-        reward_ctrl = - 0.1 * np.square(action).sum()
+        reward_ctrl = - 0.01 * np.square(action).sum()
         reward_run = (xposafter - xposbefore) / self.dt
         reward = reward_ctrl + reward_run
         done = False
@@ -53,7 +53,7 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         """DIFFERENT FROM ORIGINAL GYM"""
         xposbefore = state[0]
         xposafter = next_state[0]
-        reward_ctrl = - 0.1 * torch.sum(torch.mul(action, action))
+        reward_ctrl = - 0.01 * torch.sum(torch.mul(action, action))
         reward_run = (xposafter - xposbefore) / self.dt
         reward = reward_ctrl + reward_run
         return reward.view([1, ])
