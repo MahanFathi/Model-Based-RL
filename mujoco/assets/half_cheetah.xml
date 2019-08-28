@@ -35,8 +35,8 @@
 <mujoco model="cheetah">
     <compiler angle="radian" coordinate="local" inertiafromgeom="true" settotalmass="14"/>
     <default>
-        <joint armature=".1" damping=".01" limited="true" solimplimit="0 .8 .03" solreflimit=".03 1" stiffness="8"/>
-        <geom conaffinity="0" condim="3" contype="1" friction=".4 .1 .1" rgba="0.8 0.6 .4 1" solimp="0.0 0.8 0.01" solref="0.03 1"/>
+        <joint armature=".1" damping=".01" limited="true" solimplimit="0 .8 .03" solreflimit=".2 1" stiffness="8"/>
+        <geom conaffinity="0" condim="3" contype="1" friction=".4 .1 .1" rgba="0.8 0.6 .4 1" solimp="0.0 0.8 0.01" solref="0.2 1"/>
         <motor ctrllimited="true" ctrlrange="-1 1"/>
     </default>
     <size nstack="300000" nuser_geom="1"/>
