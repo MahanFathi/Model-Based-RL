@@ -16,7 +16,7 @@ def do_testing(
     episode_iteration = 0
     gamma = cfg.MUJOCO.GAMMA
     decay = gamma ** 0
-    while episode_iteration < cfg.MUJOCO.MAX_HORIZON_STEPS or first_state is None:
+    while episode_iteration < cfg.MUJOCO.MAX_HORIZON_STEPS:
         episode_iteration += 1
         agent.render()
         # video_recorder.capture_frame()
