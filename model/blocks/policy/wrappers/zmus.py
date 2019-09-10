@@ -4,7 +4,9 @@ from torch.nn.parameter import Parameter
 
 
 class ZMUSWrapper(nn.Module):
-    """Zero-mean Unit-STD States"""
+    """Zero-mean Unit-STD States
+        see: https://stats.stackexchange.com/questions/43159/how-to-calculate-pooled-variance-of-two-groups-given-known-group-variances-mean
+    """
 
     def __init__(self, policy_net, eps=1e-6):
         super(ZMUSWrapper, self).__init__()
