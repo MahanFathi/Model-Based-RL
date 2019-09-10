@@ -69,6 +69,7 @@ def do_training(
                 #     state_xr.add(state.detach())
             loss = -episode_reward
             batch_rewards.append(-loss.item())
+            model.policy_net.episode_callback()
             loss.backward()
         optimizer.step()
         mean_reward = np.mean(batch_rewards)

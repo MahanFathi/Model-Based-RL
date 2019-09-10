@@ -5,6 +5,7 @@ MUJOCO:
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
+#  WEIGHTS: "/home/mahan/Junk/output/InvertedPendulumEnv/2019-08-27 17:34:22/weights/iter_9900000.pth"
   POLICY:
     ARCH: 'StochasticPolicy'
     LAYERS:

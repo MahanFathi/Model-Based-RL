@@ -25,6 +25,8 @@ _C.MODEL.POLICY.NORM_LAYERS = [0, 1, 2]  # should be a list of layer indices, ex
 _C.MODEL.POLICY.STD_SCALER = 1e-1
 _C.MODEL.POLICY.SOFT_LOWER_STD_BOUND = 1e-4
 _C.MODEL.POLICY.SOFT_LOWER_STD_THRESHOLD = 1e-1
+_C.MODEL.POLICY.OBS_SCALER = False
+_C.MODEL.POLICY.FORGET_COUNT_OBS_SCALER = 5000
 
 # ---------------------------------------------------------------------------- #
 # Model Configs

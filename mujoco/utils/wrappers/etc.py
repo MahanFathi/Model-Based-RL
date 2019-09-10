@@ -3,11 +3,33 @@ import torch
 import numpy as np
 
 
-class RewardScaler(gym.RewardWrapper):
+class AccumulateWrapper(gym.Wrapper):
+
+    def __init__(self, env, gamma):
+        super(AccumulateWrapper, self).__init__(env)
+        self.gamma = gamma
+        self.accumulated_return = 0.
+        self.accumulated_observations = []
+        self.accumulated_rewards = []
+
+    def step(self, action):
+        observation, reward, done, info = self.env.step(action)
+        self.accumulated_observations.append(observation)
+        self.accumulated_rewards.append(reward)
+        self.accumulated_return = self.gamma * self.accumulated_return + reward
+
+    def reset(self, **kwargs):
+        self.accumulated_return = 0.
+        self.accumulated_observations = []
+        self.accumulated_rewards = []
+        return torch.Tensor(self.env.reset(**kwargs))
+
+
+class RewardScaleWrapper(gym.RewardWrapper):
     """Bring rewards to a reasonable scale."""
 
     def __init__(self, env, scale=0.01):
-        super(RewardScaler, self).__init__(env)
+        super(RewardScaleWrapper, self).__init__(env)
         self.scale = scale
 
     def reward(self, reward):
@@ -45,4 +67,3 @@ class TorchTensorWrapper(gym.Wrapper):
     def is_done(self, state):
         state = state.detach().numpy()
         return self.env.is_done(state)
-

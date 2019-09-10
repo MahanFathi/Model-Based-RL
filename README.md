@@ -8,6 +8,7 @@ Directly back-propagate into your policy network, from model jacobians calculate
 * Reward function PyTorch Operation
 * Flexible design to wire up your own meta computation graph
 * Flexible design to define your own environment in `gym`
+* Fancy logger and monitoring
 
 ### Vanilla Computation Graph
 ```txt
@@ -28,6 +29,7 @@ Python3.6:
 * `mujoco-py`
 * `gym`
 * `numpy`
+* `visdom`
 
 Other:
 * Tested w/ `mujoco200`

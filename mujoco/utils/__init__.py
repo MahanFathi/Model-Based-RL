@@ -1,3 +1,3 @@
-from .wrappers import MjBlockWrapper, RewardScaler, ClipActionsWrapper, TorchTensorWrapper
+from .wrappers import MjBlockWrapper, RewardScaleWrapper, ClipActionsWrapper, TorchTensorWrapper
 
-__all__ = ["MjBlockWrapper", "RewardScaler", "ClipActionsWrapper", "TorchTensorWrapper"]
+__all__ = ["MjBlockWrapper", "RewardScaleWrapper", "ClipActionsWrapper", "TorchTensorWrapper"]

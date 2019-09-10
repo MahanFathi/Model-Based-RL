@@ -1,3 +1,4 @@
+from .base import BasePolicy
 import torch
 import torch.nn as nn
 import torch.distributions as tdist
@@ -6,15 +7,15 @@ from model.blocks.utils import build_soft_lower_bound_fn
 from model.blocks.policy import DeterministicPolicy
 
 
-class StochasticPolicy(nn.Module):
+class StochasticPolicy(BasePolicy):
     def __init__(self, policy_cfg, agent):
-        super(StochasticPolicy, self).__init__()
+        super(StochasticPolicy, self).__init__(policy_cfg, agent)
 
         # mean network
         self.mean_net = DeterministicPolicy(policy_cfg, agent)
 
         # variance parameters
-        action_size = agent.action_space.sample().shape[0]
+        action_size = self.agent.action_space.sample().shape[0]
         self.logstd = Parameter(torch.Tensor(action_size, ))
         nn.init.zeros_(self.logstd)
         self.logstd.data = abs(self.logstd.data)
@@ -32,3 +33,10 @@ class StochasticPolicy(nn.Module):
         a_std = self.soft_lower_bound(a_std_raw)
         a = tdist.Normal(a_mean, a_std).rsample()  # sample with re-parametrization trick
         return a
+
+    def episode_callback(self):
+        pass
+
+    def batch_callback(self):
+        pass
+
