@@ -20,12 +20,13 @@ _C.MODEL.POLICY = CN()
 
 _C.MODEL.POLICY = CN()
 _C.MODEL.POLICY.ARCH = "StochasticPolicy"
+_C.MODEL.POLICY.MAX_HORIZON_STEPS = 100
 _C.MODEL.POLICY.LAYERS = [64, 64, 32, 8]  # a list of hidden layer sizes for output fc. [] means no hidden
 _C.MODEL.POLICY.NORM_LAYERS = [0, 1, 2]  # should be a list of layer indices, example [0, 1, ...]
 _C.MODEL.POLICY.STD_SCALER = 1e-1
 _C.MODEL.POLICY.SOFT_LOWER_STD_BOUND = 1e-4
 _C.MODEL.POLICY.SOFT_LOWER_STD_THRESHOLD = 1e-1
-_C.MODEL.POLICY.OBS_SCALER = True
+_C.MODEL.POLICY.OBS_SCALER = False
 _C.MODEL.POLICY.FORGET_COUNT_OBS_SCALER = 5000
 
 # ---------------------------------------------------------------------------- #
@@ -37,7 +38,6 @@ _C.MUJOCO.ASSETS_PATH = "./mujoco/assets/"
 _C.MUJOCO.REWARD_SCALE = 1
 _C.MUJOCO.CLIP_ACTIONS = True
 _C.MUJOCO.GAMMA = 0.98
-_C.MUJOCO.MAX_HORIZON_STEPS = 100
 _C.MUJOCO.POOL_SIZE = CN()
 
 # ---------------------------------------------------------------------------- #

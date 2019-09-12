@@ -12,5 +12,8 @@ def build_agent(cfg):
     if cfg.MUJOCO.CLIP_ACTIONS:
         from .utils import ClipActionsWrapper
         agent = ClipActionsWrapper(agent)
+    if cfg.MODEL.POLICY.ARCH is 'TrajOpt':
+        from .utils import FixedStateWrapper
+        agent = FixedStateWrapper(agent)
     agent = TorchTensorWrapper(agent)
     return agent

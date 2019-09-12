@@ -1,11 +1,11 @@
 MUJOCO:
   ENV: 'HalfCheetahEnv'
-  MAX_HORIZON_STEPS: 100
   GAMMA: 0.98
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
   POLICY:
+    MAX_HORIZON_STEPS: 50
     ARCH: 'StochasticPolicy'
     LAYERS:
       - 64

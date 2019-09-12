@@ -49,6 +49,19 @@ class ClipActionsWrapper(gym.Wrapper):
         return self.env.reset(**kwargs)
 
 
+class FixedStateWrapper(gym.Wrapper):
+    def __init__(self, env):
+        super(FixedStateWrapper, self).__init__(env)
+        self.fixed_state = self.env.reset_model()
+        self.fixed_qpos = self.env.sim.data.qpos
+        self.fixed_qvel = self.env.sim.data.qvel
+
+    def reset(self, **kwargs):
+        self.env.reset(**kwargs)
+        self.env.set_state(self.fixed_qpos, self.fixed_qvel)
+        return self.env._get_obs()
+
+
 class TorchTensorWrapper(gym.Wrapper):
     """Takes care of torch Tensors in step and reset modules."""
 

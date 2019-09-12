@@ -1,11 +1,11 @@
 MUJOCO:
   ENV: 'SwimmerEnv'
-  MAX_HORIZON_STEPS: 150
   GAMMA: 0.98
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
   POLICY:
+    MAX_HORIZON_STEPS: 150
     LAYERS:
       - 32
       - 32

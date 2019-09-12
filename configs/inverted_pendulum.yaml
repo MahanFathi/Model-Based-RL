@@ -1,13 +1,13 @@
 MUJOCO:
   ENV: 'InvertedPendulumEnv'
-  MAX_HORIZON_STEPS: 50
   GAMMA: 0.98
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
 #  WEIGHTS: "/home/mahan/Junk/output/InvertedPendulumEnv/2019-08-27 17:34:22/weights/iter_9900000.pth"
   POLICY:
-    ARCH: 'StochasticPolicy'
+    MAX_HORIZON_STEPS: 50
+    ARCH: 'TrajOpt'
     LAYERS:
       - 32
       - 32
@@ -15,7 +15,7 @@ MODEL:
       - 8
     STD_SCALER: 0.1
 SOLVER:
-  BASE_LR: 0.005
+  BASE_LR: 0.001
   WEIGHT_DECAY: 0.001
   BIAS_LR_FACTOR: 2
   STD_LR_FACTOR: 0.5

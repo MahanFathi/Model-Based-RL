@@ -58,7 +58,7 @@ def do_training(
             episode_reward = 0.
             # state = state_xr.get_item()
             state = agent.reset()
-            for _ in range(cfg.MUJOCO.MAX_HORIZON_STEPS):
+            for _ in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
                 iteration += 1
                 state, reward = model(state)
                 episode_reward += decay * reward
@@ -100,6 +100,7 @@ def do_training(
                         # first_state=state_xr.get_item(),
                     )
                     test_rewards.append(test_reward)
+                    model.policy_net.episode_callback()
                 mean_reward = np.mean(test_rewards)
                 visdom.update({'test_reward': [np.mean(mean_reward)]})
                 logger.info("REWARD MEAN TEST: \t\t{}".format(mean_reward))
