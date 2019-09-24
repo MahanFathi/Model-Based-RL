@@ -27,6 +27,7 @@ S0+------>+Policy+---+--->+Dynamics+---+---+S1+-->+Policy+---+--->+Dynamics+--->
 * MuJoCo dynamics as a PyTorch Operation (i.e. forward and backward pass)
 * Reward function PyTorch Operation
 * Flexible design to wire up your own meta computation graph
+* Trajectory Optimization module alongside Policy Networks 
 * Flexible design to define your own environment in `gym`
 * Fancy logger and monitoring
 
