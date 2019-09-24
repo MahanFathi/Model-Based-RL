@@ -2,6 +2,8 @@
 
 Directly back-propagate into your policy network, from model jacobians calculated in MuJoCo using finite-difference.
 
+To backprop into stochastic policies, given an unknown model, one has to use the REINFORCE theory, to be able to calculate the gradients by sampling the environment. These methods usually have high variance, so baselines and value/advantage functions were introduced. Another way to backpropagate into your policy network is to use the “reparameterization trick” as in VAEs, but they entail knowledge of upstream gradients, and hence a known model. The policy gradients calculated w/ the reparam trick are often much lower in variance, so one can go wo/ baselines and value networks. This project puts it all together: computation graph of policy and dynamics, upstream gradients from MuJoCo dynamics and rewards, reparam trick, and optimization.
+
 ### Vanilla Computation Graph
 ```txt
      +----------+S0+----------+              +----------+S1+----------+
