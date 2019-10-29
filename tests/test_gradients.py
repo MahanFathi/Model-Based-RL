@@ -4,13 +4,14 @@ import torch
 import numpy as np
 from model.config import get_cfg_defaults
 from mujoco import build_agent
+from copy import deepcopy
 
 
 class TestGradients(unittest.TestCase):
 
     def test_reward_gradients(self):
         cfg = get_cfg_defaults()
-        cfg.MUJOCO.ENV = "HopperEnv"
+        cfg.MUJOCO.ENV = "InvertedPendulumEnv"
         agent = build_agent(cfg)
         mj_reward_forward_fn = agent.forward_factory("reward")
         mj_reward_gradients_fn = agent.gradient_factory("reward")
@@ -41,7 +42,7 @@ class TestGradients(unittest.TestCase):
 
     def test_dynamics_gradients(self):
         cfg = get_cfg_defaults()
-        cfg.MUJOCO.ENV = "HopperEnv"
+        cfg.merge_from_file("/home/aleksi/Workspace/Model-Based-RL/configs/swimmer.yaml")
         agent = build_agent(cfg)
         mj_dynamics_forward_fn = agent.forward_factory("dynamics")
         mj_dynamics_gradients_fn = agent.gradient_factory("dynamics")
@@ -73,6 +74,52 @@ class TestGradients(unittest.TestCase):
         print(s_prime_estimate)
         self.assert_(np.allclose(s_prime, s_prime_estimate))
 
+    def test_combined_gradients(self):
+        cfg = get_cfg_defaults()
+        cfg.merge_from_file("/home/aleksi/Workspace/Model-Based-RL/configs/swimmer.yaml")
+        agent = build_agent(cfg)
+        mj_dynamics_forward_fn = agent.forward_factory("dynamics")
+        mj_dynamics_gradients_fn = agent.gradient_factory("dynamics")
+
+        nwarmup = 5
+        agent.reset()
+        nv = agent.sim.model.nv
+        nu = agent.sim.model.nu
+        action = torch.Tensor([0.553, 0.553])
+        for _ in range(nwarmup):
+            #action = torch.Tensor(agent.action_space.sample())
+            ob, r, _, _ = agent.step(action.detach().numpy())
+        data = agent.get_snapshot()
+        data.ctrl = action
+        _, reward, _, _ = agent.step(action)
+
+        #agent.reset()
+        for _ in range(nwarmup):
+            #action = torch.Tensor(agent.action_space.sample())
+            ob, r, _, _ = agent.step(action.detach().numpy())
+        _, reward2, _, _ = agent.step(action.detach().numpy())
+
+        #state = ob
+        #action = agent.action_space.sample()
+        #state_action = np.concatenate([state, action], axis=0)
+
+
+        dsdsa = mj_dynamics_gradients_fn(data, reward)
+        dsds = dsdsa[:, :nv * 2]
+        dsda = dsdsa[:, -nu:]
+
+        eps = 1e-6
+        state_action_prime = state_action + eps
+        s = mj_dynamics_forward_fn(state_action)
+        s_prime = mj_dynamics_forward_fn(state_action_prime)
+
+        s_prime_estimate = s + \
+                           np.squeeze(np.matmul(dsds, np.array([eps] * 2 * nv).reshape([-1, 1]))) + \
+                           np.squeeze(np.matmul(dsda, np.array([eps] * nu).reshape([-1, 1])))
+        print(s)
+        print(s_prime)
+        print(s_prime_estimate)
+        self.assert_(np.allclose(s_prime, s_prime_estimate))
 
 if __name__ == '__main__':
     unittest.main()

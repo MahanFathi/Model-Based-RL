@@ -34,11 +34,11 @@ def do_training(
     logger.info("Running with config:\n{}".format(cfg))
 
     # build and initialize state experience replay
-    state_xr = build_state_experience_replay(cfg)
-    for _ in range(cfg.SOLVER.BATCH_SIZE):
-        env_init_states = [agent.reset()] * \
-                          int(cfg.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM / cfg.SOLVER.BATCH_SIZE)
-        state_xr.add_batch(env_init_states)
+    #state_xr = build_state_experience_replay(cfg)
+    #for _ in range(cfg.SOLVER.BATCH_SIZE):
+    #    env_init_states = [agent.reset()] * \
+    #                      int(cfg.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM / cfg.SOLVER.BATCH_SIZE)
+    #    state_xr.add_batch(env_init_states)
 
     # wrap screen recorder if testing mode is on
     if cfg.LOG.TESTING.ON:
@@ -52,12 +52,13 @@ def do_training(
     gamma = cfg.MUJOCO.GAMMA
     for _ in range(cfg.SOLVER.EPOCHS):
         optimizer.zero_grad()
-        batch_rewards = []
-        for _ in range(cfg.SOLVER.BATCH_SIZE):
+        #batch_rewards = []
+        loss = torch.empty(cfg.SOLVER.BATCH_SIZE, 1)
+        for episode_idx in range(cfg.SOLVER.BATCH_SIZE):
             decay = gamma ** 0
             episode_reward = 0.
             # state = state_xr.get_item()
-            state = agent.reset()
+            state = torch.Tensor(agent.reset())
             for _ in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
                 iteration += 1
                 state, reward = model(state)
@@ -67,12 +68,17 @@ def do_training(
                 #     break
                 # else:
                 #     state_xr.add(state.detach())
-            loss = -episode_reward
-            batch_rewards.append(-loss.item())
+            #loss += -episode_reward
+            loss[episode_idx] = -episode_reward
+            #batch_rewards.append(-loss.item())
             model.policy_net.episode_callback()
-            loss.backward()
+            #loss.backward()
+        #mean_loss = (loss - loss.mean()).mean()
+        mean_loss = loss.mean()
+        mean_loss.backward()
         optimizer.step()
-        mean_reward = np.mean(batch_rewards)
+        #mean_reward = np.mean(batch_rewards)
+        mean_reward = -mean_loss.detach().numpy()
 
         if iteration % cfg.LOG.PERIOD == 0:
             visdom.update({'train_reward': [mean_reward]})
