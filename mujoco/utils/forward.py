@@ -24,9 +24,14 @@ def mj_forward_factory(agent, mode):
         if action is None:
             action = agent.data.ctrl
 
-        # Convert tensor to numpy array
+        # Convert tensor to numpy array, and make sure we're using an action value that isn't referencing agent's data
+        # (otherwise we might get into trouble if ctrl is limited and frame_skip is larger than one)
         if isinstance(action, torch.Tensor):
-            action = action.detach().numpy()
+            action = action.detach().numpy().copy()
+        elif isinstance(action, np.ndarray):
+            action = action.copy()
+        else:
+            raise TypeError("Expecting a torch tensor or numpy ndarray")
 
         # Make sure dtype is numpy.float64
         assert action.dtype == np.float64, "You must use dtype numpy.float64 for actions"

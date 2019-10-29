@@ -72,4 +72,3 @@ class MjBlockWrapper(gym.Wrapper):
             return wrapper
 
         return decorator
-

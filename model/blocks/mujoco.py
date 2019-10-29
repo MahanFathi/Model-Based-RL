@@ -12,7 +12,7 @@ def mj_torch_block_factory(agent, mode):
 
             # We need to get a deep copy of simulation data so we can return to this "snapshot"
             # (we can't deepcopy agent.sim.data because some variables are unpicklable)
-            agent.data.ctrl[:] = action.detach().numpy()
+            agent.data.ctrl[:] = action.detach().numpy().copy()
             ctx.data_snapshot = agent.get_snapshot()
 
             # Advance simulation
