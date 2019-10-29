@@ -339,7 +339,7 @@ def calculate_reward(env, qpos, qvel, ctrl, qpos_next, qvel_next):
     return reward.detach().numpy()
 
 
-def reward_worker_separate(agent, data_snapshot, reward):
+def reward_gradients(agent, data_snapshot, reward):
     # Defining m and d just for shorter notations
     m = agent.model
     d = agent.data
@@ -352,7 +352,7 @@ def reward_worker_separate(agent, data_snapshot, reward):
     agent.set_snapshot(data_snapshot)
 
     # Step with the main simulation
-    info = agent.step(d.ctrl)
+    info = agent.step()
 
     # Sanity check for now; reward must equal reward_check, otherwise it means that the simulation start values
     # are not the same as in forward block pass
@@ -368,11 +368,8 @@ def reward_worker_separate(agent, data_snapshot, reward):
         # Perturb control
         d.ctrl[i] += eps
 
-        # Let's take a copy of control in case it changes when we step the simulation
-        ctrl_perturb = d.ctrl.copy()
-
         # Step with perturbed simulation
-        info = agent.step(d.ctrl)
+        info = agent.step()
 
         # Compute gradients of qpos and qvel wrt control
         drdctrl[0, i] = (info[1] - reward) / eps
@@ -452,7 +449,7 @@ def mj_gradients_factory(agent, mode):
     #mj_sim_main = env.sim
     #mj_sim = mj.MjSim(mj_sim_main.model)
 
-    #worker = {'dynamics': dynamics_worker_separate, 'reward': reward_worker_separate}[mode]
+    #worker = {'dynamics': reward_worker, 'reward': reward_worker}[mode]
 
     @agent.gradient_wrapper(mode)
     def mj_gradients(data_snapshot, reward):
@@ -470,7 +467,7 @@ def mj_gradients_factory(agent, mode):
 #        env.sim.model.opt.tolerance = 0
         #dfds, dfda = worker(env)
 
-        drda = reward_worker_separate(agent, data_snapshot, reward)
+        drda = reward_gradients(agent, data_snapshot, reward)
         return drda
 
     return mj_gradients

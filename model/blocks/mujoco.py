@@ -1,6 +1,5 @@
 import torch
 from torch import autograd
-from copy import deepcopy
 
 def mj_torch_block_factory(agent, mode):
     mj_forward = agent.forward_factory(mode)
@@ -10,20 +9,18 @@ def mj_torch_block_factory(agent, mode):
 
         @staticmethod
         def forward(ctx, action):
-            #ctx.save_for_backward(action)
 
             # We need to get a deep copy of simulation data so we can return to this "snapshot"
-            # (we can't deepcopy agent.sim.data because some variables are unpiclable)
-            data_snapshot = agent.get_snapshot()
-            data_snapshot.ctrl = action.detach().numpy()
-            ctx.data_snapshot = data_snapshot
+            # (we can't deepcopy agent.sim.data because some variables are unpicklable)
+            agent.data.ctrl[:] = action.detach().numpy()
+            ctx.data_snapshot = agent.get_snapshot()
+
+            # Advance simulation
+            reward = mj_forward()
 
             # We might as well save the reward
-            reward = mj_forward(action.detach().numpy())
             ctx.reward = reward.copy()
-            #print("forward: {}, {}", data_snapshot.time, reward)
 
-            #return torch.Tensor(mj_forward(state_action.detach().numpy()))
             return torch.Tensor(reward)
 
         @staticmethod

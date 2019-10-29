@@ -1,5 +1,5 @@
 import numpy as np
-
+import torch
 
 def mj_forward_factory(agent, mode):
     """
@@ -9,7 +9,7 @@ def mj_forward_factory(agent, mode):
     """
 
     @agent.forward_wrapper(mode)
-    def mj_forward(action):
+    def mj_forward(action=None):
         """
         :param state_action: np.array of state and action, concatenated
         :return:
@@ -19,7 +19,21 @@ def mj_forward_factory(agent, mode):
         #ctrl = state_action[-env.model.nu:]
         #env.set_state(qpos, qvel)
         # set solver options for finite differences
+
+        # If action wasn't explicitly given use the current one in agent's env
+        if action is None:
+            action = agent.data.ctrl
+
+        # Convert tensor to numpy array
+        if isinstance(action, torch.Tensor):
+            action = action.detach().numpy()
+
+        # Make sure dtype is numpy.float64
+        assert action.dtype == np.float64, "You must use dtype numpy.float64 for actions"
+
+        # Advance simulation with one step
         next_state, reward, done, _ = agent.step(action)
+
         if mode == "dynamics":
             return np.array(next_state)
         elif mode in ["reward", "forward"]:
