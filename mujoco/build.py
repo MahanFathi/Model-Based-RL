@@ -1,11 +1,11 @@
 from mujoco import envs
-from .utils import MjBlockWrapper, StateWrapper
+from .utils import MjBlockWrapper, SnapshotWrapper
 
 
 def build_agent(cfg):
     agent_factory = getattr(envs, cfg.MUJOCO.ENV)
     agent = agent_factory()
-    agent = StateWrapper(agent)
+    agent = SnapshotWrapper(agent)
     if cfg.MUJOCO.REWARD_SCALE != 1.0:
         from .utils import RewardScaleWrapper
         agent = RewardScaleWrapper(agent, cfg.MUJOCO.REWARD_SCALE)

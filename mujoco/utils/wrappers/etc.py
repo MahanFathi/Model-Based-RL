@@ -83,12 +83,12 @@ class TorchTensorWrapper(gym.Wrapper):
     #    return self.env.is_done(state)
 
 
-class StateWrapper(gym.Wrapper):
+class SnapshotWrapper(gym.Wrapper):
     """Handles all stateful stuff, like getting and setting snapshots of states, and resetting"""
     def get_snapshot(self):
 
         class DataSnapshot:
-            # Should contain all variables that are needed to reset a simulation to a specific state
+            # Note: You should not modify these parameters after creation
 
             def __init__(self, d_source):
                 self.time = deepcopy(d_source.time)
