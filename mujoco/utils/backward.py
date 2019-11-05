@@ -339,11 +339,17 @@ def calculate_reward(env, qpos, qvel, ctrl, qpos_next, qvel_next):
     return reward.detach().numpy()
 
 
-def reward_gradients(agent, data_snapshot, reward, test=False):
+def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
     # Defining m and d just for shorter notations
     m = agent.model
     d = agent.data
 
+    # Dynamics gradients
+    dsdctrl = np.empty((m.nq + m.nv, m.nu))
+    dsdqpos = np.empty((m.nq + m.nv, m.nq))
+    dsdqvel = np.empty((m.nq + m.nv, m.nv))
+
+    # Reward gradients
     drdctrl = np.empty((1, m.nu))
     drdqpos = np.empty((1, m.nq))
     drdqvel = np.empty((1, m.nv))
@@ -357,8 +363,15 @@ def reward_gradients(agent, data_snapshot, reward, test=False):
         # Step with the main simulation
         info = agent.step(d.ctrl.copy())
 
-        # Sanity check. "reward" must equal info[1], otherwise it means that this simulation diverges from forward pass
-        assert reward == info[1], "reward is {}, reward_check is {}".format(reward, info[1])
+        # Sanity check. "reward" must equal info[1], otherwise this simulation has diverged from the forward pass
+        assert reward == info[1], "reward is different from forward pass [{} != {}]".format(reward, info[1])
+
+        # Another check. "next_state" must equal info[0], otherwise this simulation has diverged from the forward pass
+        assert (next_state == info[0]).all(), "state is different from forward pass"
+
+    # Get state from the forward pass
+    qpos_fwd = next_state[:agent.model.nq]
+    qvel_fwd = next_state[agent.model.nq:]
 
     # finite-difference over control values: skip = mjSTAGE_VEL
     for i in range(m.nu):
@@ -373,6 +386,10 @@ def reward_gradients(agent, data_snapshot, reward, test=False):
         info = agent.step(d.ctrl.copy())
 
         # Compute gradients of qpos and qvel wrt control
+        dsdctrl[:m.nq, i] = (d.qpos - qpos_fwd) / eps
+        dsdctrl[m.nq:, i] = (d.qvel - qvel_fwd) / eps
+
+        # Compute gradients of qpos and qvel wrt reward
         drdctrl[0, i] = (info[1] - reward) / eps
 
     # finite-difference over velocity: skip = mjSTAGE_POS
@@ -384,17 +401,14 @@ def reward_gradients(agent, data_snapshot, reward, test=False):
         # Perturb velocity
         d.qvel[i] += eps
 
-        # Copy perturbed joint velocity
-        qvel_perturb = d.qvel.copy()
-
         # Step with perturbed simulation
-        #mj.functions.mj_step(m, d)
         info = agent.step(d.ctrl)
 
-        # Get reward
-        #reward_perturb = calculate_reward(env, data_snapshot.qpos, qvel_perturb, data_snapshot.ctrl, d.qpos, d.qvel)
-
         # Compute gradients of qpos and qvel wrt qvel
+        dsdqvel[:m.nq, i] = (d.qpos - qpos_fwd) / eps
+        dsdqvel[m.nq:, i] = (d.qvel - qvel_fwd) / eps
+
+        # Compute gradients of qpos and qvel wrt reward
         drdqvel[0, i] = (info[1] - reward) / eps
 
     # finite-difference over position: skip = mjSTAGE_NONE
@@ -424,21 +438,23 @@ def reward_gradients(agent, data_snapshot, reward, test=False):
         else:
             d.qpos[m.jnt_qposadr[jid] + i - m.jnt_dofadr[jid]] += eps
 
-        # Copy perturbed joint position
-        qpos_perturb = d.qpos.copy()
-
         # Step simulation with perturbed position
-        #mj.functions.mj_step(m, d)
         info = agent.step(d.ctrl)
 
-        # Get reward
-        #reward_perturb = calculate_reward(env, qpos_perturb, data_snapshot.qvel, data_snapshot.ctrl, d.qpos, d.qvel)
-
         # Compute gradients of qpos and qvel wrt qpos
+        dsdqpos[:m.nq, i] = (d.qpos - qpos_fwd) / eps
+        dsdqpos[m.nq:, i] = (d.qvel - qvel_fwd) / eps
+
+        # Compute gradients of qpos and qvel wrt reward
         drdqpos[0, i] = (info[1] - reward) / eps
 
-    #return np.concatenate((drdqpos, drdqvel), axis=1), drdctrl
-    return drdctrl
+    # Set dynamics gradients
+    agent.dynamics_gradients = {"state": np.concatenate((dsdqpos, dsdqvel), axis=1), "action": dsdctrl}
+
+    # Set reward gradients
+    agent.reward_gradients = {"state": np.concatenate((drdqpos, drdqvel), axis=1), "action": drdctrl}
+
+    return
 
 
 def mj_gradients_factory(agent, mode):
@@ -453,7 +469,7 @@ def mj_gradients_factory(agent, mode):
     #worker = {'dynamics': reward_worker, 'reward': reward_worker}[mode]
 
     @agent.gradient_wrapper(mode)
-    def mj_gradients(data_snapshot, reward, test=False):
+    def mj_gradients(data_snapshot, next_state, reward, test=False):
         #state = state_action[:env.model.nq + env.model.nv]
         #qpos = state[:env.model.nq]
         #qvel = state[env.model.nq:]
@@ -468,7 +484,6 @@ def mj_gradients_factory(agent, mode):
 #        env.sim.model.opt.tolerance = 0
         #dfds, dfda = worker(env)
 
-        drda = reward_gradients(agent, data_snapshot, reward, test=test)
-        return drda
+        calculate_gradients(agent, data_snapshot, next_state, reward, test=test)
 
     return mj_gradients

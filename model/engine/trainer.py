@@ -49,50 +49,47 @@ def do_training(
         video_recorder = VideoRecorder(agent)
 
     iteration = 0
-    gamma = cfg.MUJOCO.GAMMA
-    for _ in range(cfg.SOLVER.EPOCHS):
+    for epoch_idx in range(cfg.SOLVER.EPOCHS):
         optimizer.zero_grad()
-        #batch_rewards = []
-        loss = torch.empty(cfg.SOLVER.BATCH_SIZE, 1)
+        batch_loss = torch.empty(cfg.SOLVER.BATCH_SIZE)
         for episode_idx in range(cfg.SOLVER.BATCH_SIZE):
-            decay = gamma ** 0
-            episode_reward = 0.
+            episode_loss = torch.empty(cfg.MODEL.POLICY.MAX_HORIZON_STEPS, dtype=torch.float64)
             # state = state_xr.get_item()
-            state = torch.Tensor(agent.reset())
-            for _ in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
+            state = torch.DoubleTensor(agent.reset())
+            for step_idx in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
                 iteration += 1
                 state, reward = model(state)
-                episode_reward += decay * reward
-                decay *= gamma
-                # if agent.is_done(state):
-                #     break
-                # else:
+                episode_loss[step_idx] = -reward
+                if agent.is_done:
+                    break
+                #else:
                 #     state_xr.add(state.detach())
-            #loss += -episode_reward
-            loss[episode_idx] = -episode_reward
-            #batch_rewards.append(-loss.item())
+            #episode_loss[episode_idx] = -episode_reward
             model.policy_net.episode_callback()
-            #loss.backward()
-        #mean_loss = (loss - loss.mean()).mean()
-        mean_loss = loss.mean()
-        mean_loss.backward()
+
+            batch_loss[episode_idx] = torch.sum(episode_loss[:step_idx+1])
+
+        #batch_loss = episode_loss.sum()
+        loss = torch.mean(batch_loss)
+        #loss = torch.sum(episode_loss[:step_idx+1])
+        loss.backward()
         optimizer.step()
         #mean_reward = np.mean(batch_rewards)
-        mean_reward = -mean_loss.detach().numpy()
+        mean_reward = -loss.detach().numpy() / (step_idx+1)
 
-        if iteration % cfg.LOG.PERIOD == 0:
+        if epoch_idx % cfg.LOG.PERIOD == 0:
             visdom.update({'train_reward': [mean_reward]})
-            logger.info("REWARD: \t\t{}".format(mean_reward))
+            logger.info("REWARD: \t\t{} (iteration {})".format(mean_reward, epoch_idx))
 
-        if iteration % cfg.LOG.PLOT.ITER_PERIOD == 0:
+        if epoch_idx % cfg.LOG.PLOT.ITER_PERIOD == 0:
             visdom.do_plotting()
 
-        if iteration % cfg.LOG.CHECKPOINT_PERIOD == 0:
+        if epoch_idx % cfg.LOG.CHECKPOINT_PERIOD == 0:
             torch.save(model.state_dict(),
                        os.path.join(output_weights_dir, 'iter_{}.pth'.format(iteration)))
 
         if cfg.LOG.TESTING.ON:
-            if iteration % cfg.LOG.TESTING.ITER_PERIOD == 0:
+            if epoch_idx % cfg.LOG.TESTING.ITER_PERIOD == 0:
                 logger.info("TESTING ... ")
                 model.eval()
                 video_recorder.path = os.path.join(output_rec_dir, "iter_{}.mp4".format(iteration))
@@ -112,5 +109,3 @@ def do_training(
                 logger.info("REWARD MEAN TEST: \t\t{}".format(mean_reward))
                 model.train()
                 # video_recorder.close()
-
-

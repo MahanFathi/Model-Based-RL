@@ -30,8 +30,8 @@ def do_testing(
             #action = model(state)
             state, reward = model(state)
             #state, reward, done, _ = agent.step(action)
-            reward_sum += reward * decay
-            decay *= gamma
-            # if done and first_state is None:
-            #     break
-        return reward_sum
+            reward_sum += reward
+            #decay *= gamma
+            if agent.is_done:
+                 break
+        return reward_sum/episode_iteration

@@ -19,4 +19,7 @@ def build_agent(cfg):
     # This should probably be last so we get all wrappers
     agent = MjBlockWrapper(agent)
 
+    # Maybe we should set opt tolerance to zero so mujoco solvers shouldn't stop early?
+    agent.model.opt.tolerance = 0
+
     return agent

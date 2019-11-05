@@ -18,9 +18,8 @@ class Basic(nn.Module):
         self.policy_net = build_policy(cfg.MODEL.POLICY, self.agent)
 
         # build forward dynamics block
-        #self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
-        #self.reward_block = mj_torch_block_factory(agent, 'reward').apply
-        self.forward_block = mj_torch_block_factory(agent, 'forward').apply
+        self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
+        self.reward_block = mj_torch_block_factory(agent, 'reward').apply
 
     def forward(self, state):
         """Single pass.
@@ -28,27 +27,15 @@ class Basic(nn.Module):
         :return:
         """
 
-        # get action
-        action = self.policy_net(state)
-        #if not self.training:
-        #    return action
-        #state_action = torch.cat([state, action])
-        #self.agent.env.sim.data.ctrl[:] = action
-        #next_state = self.dynamics_block(state_action)
+        # We're generally using torch.float64 and numpy.float64 for precision, but the net can be trained with
+        # torch.float32 -- not sure if this really makes a difference wrt speed or memory, but the default layers
+        # seem to be using torch.float32
+        action = self.policy_net(state.float()).double()
 
-        #snapshot = self.agent.get_snapshot()
+        # Forward block will drive the simulation forward
+        next_state = self.dynamics_block(state, action)
 
-        #next_state = self.dynamics_block(action)
-        #reward = self.reward_block(state_action)
-
-        #self.agent.set_snapshot(snapshot)
-        #reward = self.reward_block(action)
-        #reward = self.agent.tensor_reward(state, action, next_state)
-
-        # Forward block will drive the simulation forward and return reward as a tensor
-        reward = self.forward_block(action)
-
-        # We can grab the next state from the simulation
-        next_state = torch.Tensor(np.concatenate((self.agent.env.sim.data.qpos, self.agent.env.sim.data.qvel)))
+        # The reward is actually calculated in the dynamics_block, here we'll just grab it from the agent
+        reward = self.reward_block(state, action)
 
         return next_state, reward

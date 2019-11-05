@@ -1,6 +1,7 @@
 import torch
 from torch import autograd
 
+
 def mj_torch_block_factory(agent, mode):
     mj_forward = agent.forward_factory(mode)
     mj_gradients = agent.gradient_factory(mode)
@@ -8,41 +9,47 @@ def mj_torch_block_factory(agent, mode):
     class MjBlock(autograd.Function):
 
         @staticmethod
-        def forward(ctx, action):
+        def forward(ctx, state, action):
 
-            # We need to get a deep copy of simulation data so we can return to this "snapshot"
-            # (we can't deepcopy agent.sim.data because some variables are unpicklable)
-            agent.data.ctrl[:] = action.detach().numpy().copy()
-            ctx.data_snapshot = agent.get_snapshot()
+            # Advance simulation or return reward
+            if mode == "dynamics":
+                # We need to get a deep copy of simulation data so we can return to this "snapshot"
+                # (we can't deepcopy agent.sim.data because some variables are unpicklable)
+                # We'll calculate gradients in the backward phase of "reward"
+                agent.data.qpos[:] = state[:agent.model.nq].detach().numpy().copy()
+                agent.data.qvel[:] = state[agent.model.nq:].detach().numpy().copy()
+                agent.data.ctrl[:] = action.detach().numpy().copy()
+                agent.data_snapshot = agent.get_snapshot()
 
-            # Advance simulation
-            reward = mj_forward()
+                next_state = mj_forward()
+                agent.next_state = next_state
 
-            # We might as well save the reward
-            ctx.reward = reward.copy()
+                return torch.from_numpy(next_state)
 
-            return torch.Tensor(reward)
+            elif mode == "reward":
+                ctx.data_snapshot = agent.data_snapshot
+                ctx.reward = agent.reward
+                ctx.next_state = agent.next_state
+                return torch.Tensor([agent.reward]).double()
+
+            else:
+                raise TypeError("mode has to be 'dynamics' or 'gradient'")
 
         @staticmethod
         def backward(ctx, grad_output):
-            #state_action, = ctx.saved_tensors
-            #action, = ctx.saved_tensors
-            #data_snapshot = ctx.data_snapshot
-            #data.ctrl[:] = action.detach().numpy()
-            grad_input = grad_output.clone()
-            #jacobian = torch.Tensor(mj_gradients(state_action.detach().numpy()))
-            jacobian = torch.Tensor(mj_gradients(ctx.data_snapshot, ctx.reward))
-            #print("backward: {}, {}", ctx.data_snapshot.time, ctx.reward)
-            #if mode == "dynamics":
-            #    jacobian[:, :4] = 0
-            #else:
-            #    jacobian[:, :4] = 0
-            #print("mode: {}".format(mode))
-            #print("grad input: {}".format(grad_input))
-            #print("jacobian: {}".format(jacobian))
-            #print("output: {}".format(torch.matmul(grad_input, jacobian)))
-            #print("")
-            return torch.matmul(grad_input, jacobian)
+
+            # We should need to calculate gradients only once per dynamics/reward cycle
+            if mode == "dynamics":
+                state_jacobian = torch.from_numpy(agent.dynamics_gradients["state"])
+                action_jacobian = torch.from_numpy(agent.dynamics_gradients["action"])
+            elif mode == "reward":
+                mj_gradients(ctx.data_snapshot, ctx.next_state, ctx.reward, test=True)
+                state_jacobian = torch.from_numpy(agent.reward_gradients["state"])
+                action_jacobian = torch.from_numpy(agent.reward_gradients["action"])
+            else:
+                raise TypeError("mode has to be 'dynamics' or 'reward'")
+
+            return torch.matmul(grad_output, state_jacobian), torch.matmul(grad_output, action_jacobian)
 
     return MjBlock
 
