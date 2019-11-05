@@ -1,6 +1,5 @@
 import gym
 import numpy as np
-from copy import deepcopy
 
 from mujoco.utils.forward import mj_forward_factory
 from mujoco.utils.backward import mj_gradients_factory
@@ -12,9 +11,6 @@ class MjBlockWrapper(gym.Wrapper):
     def __init__(self, env):
         gym.Wrapper.__init__(self, env)
 
-    def clone(self):
-        return deepcopy(self)
-
     def gradient_factory(self, mode):
         """
         :param mode: 'dynamics' or 'reward'
@@ -22,16 +18,16 @@ class MjBlockWrapper(gym.Wrapper):
         """
         # TODO: due to dynamics and reward isolation, this isn't the
         #  most efficient way to handle this; lazy, but simple
-        env = self.clone()
-        return mj_gradients_factory(env, mode)
+        #env = self.clone()
+        return mj_gradients_factory(self, mode)
 
     def forward_factory(self, mode):
         """
         :param mode: 'dynamics' or 'reward'
         :return:
         """
-        env = self.clone()
-        return mj_forward_factory(env, mode)
+        #env = self.clone()
+        return mj_forward_factory(self, mode)
 
     def gradient_wrapper(self, mode):
         """
@@ -43,10 +39,13 @@ class MjBlockWrapper(gym.Wrapper):
         # mode agnostic for now
         def decorator(gradients_fn):
             def wrapper(*args, **kwargs):
-                dfds, dfda = gradients_fn(*args, **kwargs)
-                # no further reshaping is needed for the case of hopper, also it's mode-agnostic
-                gradients = np.concatenate([dfds, dfda], axis=1)
-                return gradients
+                #if mode == "forward":
+                gradients_fn(*args, **kwargs)
+                #else:
+                #    dfds, dfda = gradients_fn(*args, **kwargs)
+                #    # no further reshaping is needed for the case of hopper, also it's mode-agnostic
+                #    gradients = np.concatenate([dfds, dfda], axis=1)
+                return
 
             return wrapper
 
@@ -69,4 +68,3 @@ class MjBlockWrapper(gym.Wrapper):
             return wrapper
 
         return decorator
-

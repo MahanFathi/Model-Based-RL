@@ -1,9 +1,10 @@
 from .mj_block import MjBlockWrapper
-from .etc import AccumulateWrapper, RewardScaleWrapper, ClipActionsWrapper, FixedStateWrapper, TorchTensorWrapper
+from .etc import AccumulateWrapper, RewardScaleWrapper, ClipActionsWrapper, FixedStateWrapper, TorchTensorWrapper, SnapshotWrapper
 
 __all__ = ["MjBlockWrapper",
            "AccumulateWrapper",
            "RewardScaleWrapper",
            "ClipActionsWrapper",
            "FixedStateWrapper",
-           "TorchTensorWrapper"]
+           "TorchTensorWrapper",
+           "SnapshotWrapper"]

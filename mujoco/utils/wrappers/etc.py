@@ -1,6 +1,7 @@
 import gym
 import torch
 import numpy as np
+from copy import deepcopy
 
 
 class AccumulateWrapper(gym.Wrapper):
@@ -59,24 +60,59 @@ class FixedStateWrapper(gym.Wrapper):
     def reset(self, **kwargs):
         self.env.reset(**kwargs)
         self.env.set_state(self.fixed_qpos, self.fixed_qvel)
-        return self.env._get_obs()
+        return self.env.env._get_obs()
 
 
 class TorchTensorWrapper(gym.Wrapper):
     """Takes care of torch Tensors in step and reset modules."""
 
-    def step(self, action):
-        action = action.detach().numpy()
-        state, reward, done, info = self.env.step(action)
-        return torch.Tensor(state), reward, done, info
+    #def step(self, action):
+    #    action = action.detach().numpy()
+    #    state, reward, done, info = self.env.step(action)
+    #    return torch.Tensor(state), reward, done, info
 
     def reset(self, **kwargs):
         return torch.Tensor(self.env.reset(**kwargs))
 
-    def set_from_torch_state(self, state):
-        qpos, qvel = np.split(state.detach().numpy(), 2)
-        self.env.set_state(qpos, qvel)
+    #def set_from_torch_state(self, state):
+    #    qpos, qvel = np.split(state.detach().numpy(), 2)
+    #    self.env.set_state(qpos, qvel)
 
-    def is_done(self, state):
-        state = state.detach().numpy()
-        return self.env.is_done(state)
+    #def is_done(self, state):
+    #    state = state.detach().numpy()
+    #    return self.env.is_done(state)
+
+
+class SnapshotWrapper(gym.Wrapper):
+    """Handles all stateful stuff, like getting and setting snapshots of states, and resetting"""
+    def get_snapshot(self):
+
+        class DataSnapshot:
+            # Note: You should not modify these parameters after creation
+
+            def __init__(self, d_source):
+                self.time = deepcopy(d_source.time)
+                self.qpos = deepcopy(d_source.qpos)
+                self.qvel = deepcopy(d_source.qvel)
+                self.qacc_warmstart = deepcopy(d_source.qacc_warmstart)
+                self.ctrl = deepcopy(d_source.ctrl)
+                self.act = deepcopy(d_source.act)
+
+                # These probably aren't necessary, but they should fix the body in the same position with
+                # respect to worldbody frame?
+                self.body_xpos = deepcopy(d_source.body_xpos)
+                self.body_xquat = deepcopy(d_source.body_xquat)
+
+        return DataSnapshot(self.env.sim.data)
+
+    def set_snapshot(self, snapshot_data):
+        self.env.sim.data.time = deepcopy(snapshot_data.time)
+        self.env.sim.data.qpos[:] = deepcopy(snapshot_data.qpos)
+        self.env.sim.data.qvel[:] = deepcopy(snapshot_data.qvel)
+        self.env.sim.data.qacc_warmstart[:] = deepcopy(snapshot_data.qacc_warmstart)
+        self.env.sim.data.ctrl[:] = deepcopy(snapshot_data.ctrl)
+        if snapshot_data.act is not None:
+            self.env.sim.data.act[:] = deepcopy(snapshot_data.act)
+
+        self.env.sim.data.body_xpos[:] = deepcopy(snapshot_data.body_xpos)
+        self.env.sim.data.body_xquat[:] = deepcopy(snapshot_data.body_xquat)

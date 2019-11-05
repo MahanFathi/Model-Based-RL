@@ -2,6 +2,7 @@
 
 import mujoco_py as mj
 import numpy as np
+import torch
 
 # ============================================================
 #                           CONFIG
@@ -21,6 +22,19 @@ def copy_data(m, d_source, d_dest):
     for i in range(m.nbody):
         d_dest.xfrc_applied[i][:] = d_source.xfrc_applied[i]
     d_dest.ctrl[:] = d_source.ctrl
+
+    # copy d_source.act? probably need to when dealing with muscle actuators
+    #d_dest.act = d_source.act
+
+
+def initialise_simulation(d_dest, d_source):
+    d_dest.time = d_source.time
+    d_dest.qpos[:] = d_source.qpos
+    d_dest.qvel[:] = d_source.qvel
+    d_dest.qacc_warmstart[:] = d_source.qacc_warmstart
+    d_dest.ctrl[:] = d_source.ctrl
+    if d_source.act is not None:
+        d_dest.act[:] = d_source.act
 
 
 def integrate_dynamics_gradients(env, dqaccdqpos, dqaccdqvel, dqaccdctrl):
@@ -150,6 +164,98 @@ def dynamics_worker(env, d):
     return dfds, dfda
 
 
+def dynamics_worker_separate(env):
+    m = env.sim.model
+    d = env.sim.data
+
+    dsdctrl = np.empty((m.nq + m.nv, m.nu))
+    dsdqpos = np.empty((m.nq + m.nv, m.nq))
+    dsdqvel = np.empty((m.nq + m.nv, m.nv))
+
+    # Copy initial state
+    time_initial = d.time
+    qvel_initial = d.qvel.copy()
+    qpos_initial = d.qpos.copy()
+    ctrl_initial = d.ctrl.copy()
+    qacc_warmstart_initial = d.qacc_warmstart.copy()
+    act_initial = d.act.copy() if d.act is not None else None
+
+    # Step with the main simulation
+    mj.functions.mj_step(m, d)
+
+    # Get qpos, qvel of the main simulation
+    qpos = d.qpos.copy()
+    qvel = d.qvel.copy()
+
+    # finite-difference over control values: skip = mjSTAGE_VEL
+    for i in range(m.nu):
+
+        # Initialise simulation
+        initialise_simulation(d, time_initial, qpos_initial, qvel_initial, qacc_warmstart_initial, ctrl_initial, act_initial)
+
+        # Perturb control
+        d.ctrl[i] += eps
+
+        # Step with perturbed simulation
+        mj.functions.mj_step(m, d)
+
+        # Compute gradients of qpos and qvel wrt control
+        dsdctrl[:m.nq, i] = (d.qpos - qpos) / eps
+        dsdctrl[m.nq:, i] = (d.qvel - qvel) / eps
+
+    # finite-difference over velocity: skip = mjSTAGE_POS
+    for i in range(m.nv):
+
+        # Initialise simulation
+        initialise_simulation(d, time_initial, qpos_initial, qvel_initial, qacc_warmstart_initial, ctrl_initial, act_initial)
+
+        # Perturb velocity
+        d.qvel[i] += eps
+
+        # Step with perturbed simulation
+        mj.functions.mj_step(m, d)
+
+        # Compute gradients of qpos and qvel wrt qvel
+        dsdqvel[:m.nq, i] = (d.qpos - qpos) / eps
+        dsdqvel[m.nq:, i] = (d.qvel - qvel) / eps
+
+    # finite-difference over position: skip = mjSTAGE_NONE
+    for i in range(m.nq):
+
+        # Initialise simulation
+        initialise_simulation(d, time_initial, qpos_initial, qvel_initial, qacc_warmstart_initial, ctrl_initial, act_initial)
+
+        # Get joint id for this dof
+        jid = m.dof_jntid[i]
+
+        # Get quaternion address and dof position within quaternion (-1: not in quaternion)
+        quatadr = -1
+        dofpos = 0
+        if m.jnt_type[jid] == mj.const.JNT_BALL:
+            quatadr = m.jnt_qposadr[jid]
+            dofpos = i - m.jnt_dofadr[jid]
+        elif m.jnt_type[jid] == mj.const.JNT_FREE and i >= m.jnt_dofadr[jid] + 3:
+            quatadr = m.jnt_qposadr[jid] + 3
+            dofpos = i - m.jnt_dofadr[jid] - 3
+
+        # Apply quaternion or simple perturbation
+        if quatadr >= 0:
+            angvel = np.array([0., 0., 0.])
+            angvel[dofpos] = eps
+            mj.functions.mju_quatIntegrate(d.qpos + quatadr, angvel, 1)
+        else:
+            d.qpos[m.jnt_qposadr[jid] + i - m.jnt_dofadr[jid]] += eps
+
+        # Step simulation with perturbed position
+        mj.functions.mj_step(m, d)
+
+        # Compute gradients of qpos and qvel wrt qpos
+        dsdqpos[:m.nq, i] = (d.qpos - qpos) / eps
+        dsdqpos[m.nq:, i] = (d.qvel - qvel) / eps
+
+    return np.concatenate((dsdqpos, dsdqvel), axis=1), dsdctrl
+
+
 def reward_worker(env, d):
     m = env.sim.model
     dmain = env.sim.data
@@ -226,30 +332,158 @@ def reward_worker(env, d):
     return drds, drda
 
 
-def mj_gradients_factory(env, mode):
+def calculate_reward(env, qpos, qvel, ctrl, qpos_next, qvel_next):
+    current_state = np.concatenate((qpos, qvel))
+    next_state = np.concatenate((qpos_next, qvel_next))
+    reward = env.tensor_reward(torch.DoubleTensor(current_state), torch.DoubleTensor(ctrl), torch.DoubleTensor(next_state))
+    return reward.detach().numpy()
+
+
+def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
+    # Defining m and d just for shorter notations
+    m = agent.model
+    d = agent.data
+
+    # Dynamics gradients
+    dsdctrl = np.empty((m.nq + m.nv, m.nu))
+    dsdqpos = np.empty((m.nq + m.nv, m.nq))
+    dsdqvel = np.empty((m.nq + m.nv, m.nv))
+
+    # Reward gradients
+    drdctrl = np.empty((1, m.nu))
+    drdqpos = np.empty((1, m.nq))
+    drdqvel = np.empty((1, m.nv))
+
+    # For testing purposes
+    if test:
+
+        # Reset simulation to snapshot
+        agent.set_snapshot(data_snapshot)
+
+        # Step with the main simulation
+        info = agent.step(d.ctrl.copy())
+
+        # Sanity check. "reward" must equal info[1], otherwise this simulation has diverged from the forward pass
+        assert reward == info[1], "reward is different from forward pass [{} != {}]".format(reward, info[1])
+
+        # Another check. "next_state" must equal info[0], otherwise this simulation has diverged from the forward pass
+        assert (next_state == info[0]).all(), "state is different from forward pass"
+
+    # Get state from the forward pass
+    qpos_fwd = next_state[:agent.model.nq]
+    qvel_fwd = next_state[agent.model.nq:]
+
+    # finite-difference over control values: skip = mjSTAGE_VEL
+    for i in range(m.nu):
+
+        # Initialise simulation
+        agent.set_snapshot(data_snapshot)
+
+        # Perturb control
+        d.ctrl[i] += eps
+
+        # Step with perturbed simulation
+        info = agent.step(d.ctrl.copy())
+
+        # Compute gradients of qpos and qvel wrt control
+        dsdctrl[:m.nq, i] = (d.qpos - qpos_fwd) / eps
+        dsdctrl[m.nq:, i] = (d.qvel - qvel_fwd) / eps
+
+        # Compute gradients of qpos and qvel wrt reward
+        drdctrl[0, i] = (info[1] - reward) / eps
+
+    # finite-difference over velocity: skip = mjSTAGE_POS
+    for i in range(m.nv):
+
+        # Initialise simulation
+        agent.set_snapshot(data_snapshot)
+
+        # Perturb velocity
+        d.qvel[i] += eps
+
+        # Step with perturbed simulation
+        info = agent.step(d.ctrl)
+
+        # Compute gradients of qpos and qvel wrt qvel
+        dsdqvel[:m.nq, i] = (d.qpos - qpos_fwd) / eps
+        dsdqvel[m.nq:, i] = (d.qvel - qvel_fwd) / eps
+
+        # Compute gradients of qpos and qvel wrt reward
+        drdqvel[0, i] = (info[1] - reward) / eps
+
+    # finite-difference over position: skip = mjSTAGE_NONE
+    for i in range(m.nq):
+
+        # Initialise simulation
+        agent.set_snapshot(data_snapshot)
+
+        # Get joint id for this dof
+        jid = m.dof_jntid[i]
+
+        # Get quaternion address and dof position within quaternion (-1: not in quaternion)
+        quatadr = -1
+        dofpos = 0
+        if m.jnt_type[jid] == mj.const.JNT_BALL:
+            quatadr = m.jnt_qposadr[jid]
+            dofpos = i - m.jnt_dofadr[jid]
+        elif m.jnt_type[jid] == mj.const.JNT_FREE and i >= m.jnt_dofadr[jid] + 3:
+            quatadr = m.jnt_qposadr[jid] + 3
+            dofpos = i - m.jnt_dofadr[jid] - 3
+
+        # Apply quaternion or simple perturbation
+        if quatadr >= 0:
+            angvel = np.array([0., 0., 0.])
+            angvel[dofpos] = eps
+            mj.functions.mju_quatIntegrate(d.qpos + quatadr, angvel, 1)
+        else:
+            d.qpos[m.jnt_qposadr[jid] + i - m.jnt_dofadr[jid]] += eps
+
+        # Step simulation with perturbed position
+        info = agent.step(d.ctrl)
+
+        # Compute gradients of qpos and qvel wrt qpos
+        dsdqpos[:m.nq, i] = (d.qpos - qpos_fwd) / eps
+        dsdqpos[m.nq:, i] = (d.qvel - qvel_fwd) / eps
+
+        # Compute gradients of qpos and qvel wrt reward
+        drdqpos[0, i] = (info[1] - reward) / eps
+
+    # Set dynamics gradients
+    agent.dynamics_gradients = {"state": np.concatenate((dsdqpos, dsdqvel), axis=1), "action": dsdctrl}
+
+    # Set reward gradients
+    agent.reward_gradients = {"state": np.concatenate((drdqpos, drdqvel), axis=1), "action": drdctrl}
+
+    return
+
+
+def mj_gradients_factory(agent, mode):
     """
     :param env: gym.envs.mujoco.mujoco_env.mujoco_env.MujocoEnv
     :param mode: 'dynamics' or 'reward'
     :return:
     """
-    mj_sim_main = env.sim
-    mj_sim = mj.MjSim(mj_sim_main.model)
+    #mj_sim_main = env.sim
+    #mj_sim = mj.MjSim(mj_sim_main.model)
 
-    worker = {'dynamics': dynamics_worker, 'reward': reward_worker}[mode]
+    #worker = {'dynamics': reward_worker, 'reward': reward_worker}[mode]
 
-    @env.gradient_wrapper(mode)
-    def mj_gradients(state_action):
-        state = state_action[:env.model.nq + env.model.nv]
-        qpos = state[:env.model.nq]
-        qvel = state[env.model.nq:]
-        ctrl = state_action[-env.model.nu:]
-        env.set_state(qpos, qvel)
-        env.data.ctrl[:] = ctrl
-        d = mj_sim.data
+    @agent.gradient_wrapper(mode)
+    def mj_gradients(data_snapshot, next_state, reward, test=False):
+        #state = state_action[:env.model.nq + env.model.nv]
+        #qpos = state[:env.model.nq]
+        #qvel = state[env.model.nq:]
+        #ctrl = state_action[-env.model.nu:]
+        #env.set_state(qpos, qvel)
+        #env.data.ctrl[:] = ctrl
+        #d = mj_sim.data
         # set solver options for finite differences
-        mj_sim_main.model.opt.iterations = niter
-        mj_sim_main.model.opt.tolerance = 0
-        dfds, dfda = worker(env, d)
-        return dfds, dfda
+        #mj_sim_main.model.opt.iterations = niter
+        #mj_sim_main.model.opt.tolerance = 0
+#        env.sim.model.opt.iterations = niter
+#        env.sim.model.opt.tolerance = 0
+        #dfds, dfda = worker(env)
+
+        calculate_gradients(agent, data_snapshot, next_state, reward, test=test)
 
     return mj_gradients
