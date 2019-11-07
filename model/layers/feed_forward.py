@@ -20,7 +20,7 @@ class Identity(nn.Module):
 
 
 class FeedForward(nn.Module):
-    def __init__(self, input_size, middle_sizes, output_size, norm_layers=[], activation_fn=nn.ReLU, activation_out=False):
+    def __init__(self, input_size, middle_sizes, output_size, norm_layers=[], activation_fn=nn.LeakyReLU, activation_out=False):
         """
         :param input_size: int input feature size
         :param middle_sizes: [int] list of intermediate hidden state sizes

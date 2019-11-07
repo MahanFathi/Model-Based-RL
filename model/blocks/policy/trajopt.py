@@ -9,19 +9,26 @@ class TrajOpt(BasePolicy):
     def __init__(self, policy_cfg, agent):
         super(TrajOpt, self).__init__(policy_cfg, agent)
 
-        # parametrize optimization actions
+        # Parametrize optimization actions
         action_size = self.agent.action_space.sample().shape[0]
         horizon = policy_cfg.MAX_HORIZON_STEPS
-        self.optim_actions = [Parameter(torch.Tensor(action_size, )) for _ in range(horizon)]
-        for i, optim_action in enumerate(self.optim_actions):
-            self.register_parameter("optim_action_{}".format(i), optim_action)
-            nn.init.normal_(optim_action)
+        self.action_mean = Parameter(torch.zeros(horizon, action_size))
+        #nn.init.normal_(self.action_mean, mean=0.0, std=1.0)
+        self.register_parameter("action_mean", self.action_mean)
 
-        # set index to zero for the first run
+        # Get standard deviations as well when doing variational optimization
+        if policy_cfg.VARIATIONAL:
+            self.action_std = Parameter(torch.empty(horizon, action_size).fill_(-2))
+            self.register_parameter("action_std", self.action_std)
+
+        # Set index to zero
         self.index = 0
 
     def forward(self, s):
-        action = self.optim_actions[self.index]
+        if self.policy_cfg.VARIATIONAL:
+            action = torch.distributions.Normal(self.action_mean[self.index], torch.exp(self.action_std[self.index])).rsample()
+        else:
+            action = self.action_mean[self.index]
         self.index += 1
         return action
 

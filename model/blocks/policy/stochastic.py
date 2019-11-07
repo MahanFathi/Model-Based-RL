@@ -1,37 +1,41 @@
 from .base import BasePolicy
+from model.layers import FeedForward
 import torch
 import torch.nn as nn
 import torch.distributions as tdist
-from torch.nn.parameter import Parameter
 from model.blocks.utils import build_soft_lower_bound_fn
-from model.blocks.policy import DeterministicPolicy
 
 
 class StochasticPolicy(BasePolicy):
     def __init__(self, policy_cfg, agent):
         super(StochasticPolicy, self).__init__(policy_cfg, agent)
 
-        # mean network
-        self.mean_net = DeterministicPolicy(policy_cfg, agent)
+        # Get number of actions
+        self.num_actions = agent.action_space.shape[0]
 
-        # variance parameters
-        action_size = self.agent.action_space.sample().shape[0]
-        self.logstd = Parameter(torch.Tensor(action_size, ))
-        nn.init.zeros_(self.logstd)
-        self.logstd.data = abs(self.logstd.data)
-
-        self.std_scaler = policy_cfg.STD_SCALER
-
-        # build soft lower bound function
-        self.soft_lower_bound = build_soft_lower_bound_fn(policy_cfg)
+        # The network outputs a gaussian distribution
+        self.net = FeedForward(
+            agent.observation_space.shape[0],
+            policy_cfg.LAYERS,
+            self.num_actions*2
+        )
 
     def forward(self, s):
-        a_mean = self.mean_net(s)
+        # Get means and logs of standard deviations
+        output = self.net(s)
+        means = output[:self.num_actions]
+        log_stds = output[self.num_actions:]
+
+        # Return only means when testing
         if not self.training:
-            return a_mean
-        a_std_raw = torch.exp(self.logstd) * self.std_scaler
-        a_std = self.soft_lower_bound(a_std_raw)
-        a = tdist.Normal(a_mean, a_std).rsample()  # sample with re-parametrization trick
+            return means
+
+        # Get the actual standard deviations
+        stds = torch.exp(log_stds)
+
+        # Sample with re-parameterization trick
+        a = tdist.Normal(means, stds).rsample()
+
         return a
 
     def episode_callback(self):
