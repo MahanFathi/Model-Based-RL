@@ -1,22 +1,26 @@
 MUJOCO:
   ENV: 'SwimmerEnv'
-  GAMMA: 0.98
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
   POLICY:
-    MAX_HORIZON_STEPS: 150
+    ARCH: 'VariationalOptimization'
+    METHOD: 'SIR'
+    MAX_HORIZON_STEPS: 500
     LAYERS:
-      - 32
-      - 32
-      - 16
-      - 8
-    NORM_LAYERS:
-      - 0
-      - 1
+      - 128
+      - 128
+    GAMMA: 0.99
+    BATCH_SIZE: 32
+    INITIAL_LOG_SD: 0.0
+    INITIAL_ACTION_MEAN: 0.0
+    INITIAL_ACTION_SD: 0.01
+    #NORM_LAYERS:
+    #  - 0
+    #  - 1
 SOLVER:
   BASE_LR: 0.001
-  WEIGHT_DECAY: 0.001
-  BIAS_LR_FACTOR: 2
-  STD_LR_FACTOR: 0.5
-  BATCH_SIZE: 10
+  WEIGHT_DECAY: 0.0
+  BIAS_LR_FACTOR: 1
+  STD_LR_FACTOR: 100.0
+  ADAM_BETAS: (0.9, 0.999)
