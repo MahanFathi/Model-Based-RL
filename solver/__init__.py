@@ -1,3 +1,3 @@
-from .build import make_optimizer
+from .build import build_optimizer
 
-__all__ = ["make_optimizer"]
+__all__ = ["build_optimizer"]

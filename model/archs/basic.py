@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 from model.blocks import build_policy, mj_torch_block_factory
 from copy import deepcopy
+from solver import build_optimizer
 import numpy as np
+from ..blocks.policy.strategies import *
 
 
 class Basic(nn.Module):
@@ -15,7 +17,7 @@ class Basic(nn.Module):
         self.agent = agent
 
         # build policy net
-        self.policy_net = build_policy(cfg.MODEL.POLICY, self.agent)
+        self.policy_net = build_policy(cfg, self.agent)
 
         # build forward dynamics block
         self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
@@ -30,7 +32,8 @@ class Basic(nn.Module):
         # We're generally using torch.float64 and numpy.float64 for precision, but the net can be trained with
         # torch.float32 -- not sure if this really makes a difference wrt speed or memory, but the default layers
         # seem to be using torch.float32
-        action = self.policy_net(state.float()).double()
+        # TODO do we stop the flow here?
+        action = self.policy_net(state.detach().float()).double()
 
         # Forward block will drive the simulation forward
         next_state = self.dynamics_block(state, action)

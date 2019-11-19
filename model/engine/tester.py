@@ -21,8 +21,6 @@ def do_testing(
             agent.set_from_torch_state(state)
         reward_sum = 0.
         episode_iteration = 0
-        gamma = cfg.MUJOCO.GAMMA
-        decay = gamma ** 0
         while episode_iteration < cfg.MODEL.POLICY.MAX_HORIZON_STEPS:
             episode_iteration += 1
             agent.render()
