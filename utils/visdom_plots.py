@@ -40,6 +40,12 @@ class VisdomLogger(dict):
             if key in self.keys():
                 self[key].extend(val)
 
+    def set(self, record):
+        """Set a record (replaces old data)"""
+        for key, val in record.items():
+            if key in self.keys():
+                self[key] = val
+
     def do_plotting(self):
         for k in self.keys():
             y_values = np.array(self[k])
