@@ -52,6 +52,7 @@ class BaseStrategy(ABC, nn.Module):
         # In case we want to track episode and step
         self.step_idx = 0
         self.episode_idx = 0
+        agent.step_idx = self.step_idx
 
     @abstractmethod
     def _optimize(self, batch_loss):
@@ -95,8 +96,9 @@ class BaseStrategy(ABC, nn.Module):
 
     # From Tassa 2012 synthesis and stabilization of complex behaviour
     def get_clamped_sd(self, sd):
-        return torch.exp(sd)
-        #return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
+        #return sd
+        #return torch.exp(sd)
+        return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
 
     def initialise_mean(self, loc=0.0, sd=0.1, seed=0):
         if self.dim is not None:
@@ -132,14 +134,40 @@ class BaseStrategy(ABC, nn.Module):
         if stepwise_loss:
             return avg_stepwise_loss
         else:
-            return torch.sum(avg_stepwise_loss)
+            #return torch.sum(avg_stepwise_loss)
+            return torch.mean(torch.sum((-advantages * self.log_prob), dim=1))
 
     def calculate_objective_loss(self, batch_loss, stepwise_loss=False):
-        avg_stepwise_loss = torch.mean(batch_loss, dim=0)
+        #batch_loss = (batch_loss.mean(dim=0) - batch_loss) / (batch_loss.std(dim=0) + self.eps)
+        #batch_loss = batch_loss.mean() - batch_loss
+
+        # Initialise a tensor for returns
+        #ret = torch.empty(batch_loss.shape, dtype=torch.float64)
+        # Calculate returns
+        #for episode_idx, episode_loss in enumerate(batch_loss):
+        #    R = torch.zeros(1, dtype=torch.float64)
+        #    for step_idx in range(1, len(episode_loss)+1):
+        #        R = -episode_loss[-step_idx] + self.gamma*R.detach()
+        #        ret[episode_idx, -step_idx] = R
+        #avg_stepwise_loss = torch.mean(-ret, dim=0)
+
         if stepwise_loss:
-            return avg_stepwise_loss
+            return torch.mean(batch_loss, dim=0)
         else:
-            return torch.sum(avg_stepwise_loss)
+            #return torch.mean(torch.sum(batch_loss, dim=1))
+            return torch.sum(torch.mean(batch_loss, dim=0))
+
+        # Remove baseline
+        #advantages = ((ret - ret.mean(dim=0)) / (ret.std(dim=0) + self.eps))
+        #advantages = ret
+
+        # Return REINFORCE loss
+        #avg_stepwise_loss = -advantages.mean(dim=0)
+        #if stepwise_loss:
+        #    return avg_stepwise_loss
+        #else:
+        #    return torch.sum(avg_stepwise_loss)
+
 
     def PR_loss(self, batch_loss):
 
@@ -147,10 +175,11 @@ class BaseStrategy(ABC, nn.Module):
         reinforce_loss = self.calculate_reinforce_loss(batch_loss)
 
         # Get objective loss
-        objective_loss = torch.sum(torch.mean(batch_loss, dim=0))
+        objective_loss = self.calculate_objective_loss(batch_loss)
 
         # Return a sum of the objective loss and REINFORCE loss
-        loss = objective_loss + self.reinforce_loss_weight*reinforce_loss
+        #loss = objective_loss + self.reinforce_loss_weight*reinforce_loss
+        loss = objective_loss
         return loss, {"objective_loss": [objective_loss.detach().numpy()],
                       "reinforce_loss": [reinforce_loss.detach().numpy()],
                       "total_loss": [loss.detach().numpy()]}
@@ -263,7 +292,7 @@ class VariationalOptimization(BaseStrategy):
         super(VariationalOptimization, self).__init__(*args, **kwargs)
 
         # Initialise mean and sd
-        self.mean_network = True
+        self.mean_network = False
         if self.mean_network:
             # Set a feedforward network for means
             self.mean = FeedForward(
@@ -275,7 +304,7 @@ class VariationalOptimization(BaseStrategy):
         else:
             # Set tensors for means
             self.mean = Parameter(torch.from_numpy(
-                self.initialise_mean(self.cfg.MODEL.POLICY.INITIAL_ACTION_MEAN, self.cfg.MODEL.POLICY.INITIAL_ACTION_SD)
+                self.initialise_mean(self.cfg.MODEL.POLICY.INITIAL_ACTION_MEAN, self.cfg.MODEL.POLICY.INITIAL_ACTION_SD, seed=1111)
             ))
             self.register_parameter("mean", self.mean)
 
@@ -303,7 +332,9 @@ class VariationalOptimization(BaseStrategy):
 
         # Get clamped sd
         clamped_sd = self.get_clamped_sd(self.sd[:, self.step_idx])
-        self.clamped_sd[:, self.step_idx, self.episode_idx] = clamped_sd.detach().numpy()
+
+        if self.training:
+            self.clamped_sd[:, self.step_idx, self.episode_idx] = clamped_sd.detach().numpy()
 
         # Get mean of action value
         if self.mean_network:
@@ -322,13 +353,13 @@ class VariationalOptimization(BaseStrategy):
                 action = torch.from_numpy(self.best_actions[:, self.step_idx])
         else:
             action = dist.rsample()
+            #action = mean
 
             # Clip action
-            action = self.clip(action, mean, 2.0*clamped_sd)
-
-        self.clamped_action[:, self.step_idx, self.episode_idx] = action.detach().numpy()
+            #action = self.clip(action, mean, 2.0*clamped_sd)
 
         if self.training:
+            self.clamped_action[:, self.step_idx, self.episode_idx] = action.detach().numpy()
             # Get log prob for REINFORCE loss calculations
             self.log_prob[self.episode_idx, self.step_idx] = dist.log_prob(action.detach()).sum()
 

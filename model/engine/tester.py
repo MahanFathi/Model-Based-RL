@@ -30,6 +30,6 @@ def do_testing(
             #state, reward, done, _ = agent.step(action)
             reward_sum += reward
             #decay *= gamma
-            if agent.is_done:
-                 break
+            #if agent.is_done:
+            #     break
         return reward_sum/episode_iteration

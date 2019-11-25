@@ -30,6 +30,7 @@ def mj_torch_block_factory(agent, mode):
                 ctx.data_snapshot = agent.data_snapshot
                 ctx.reward = agent.reward
                 ctx.next_state = agent.next_state
+                ctx.step_idx = agent.step_idx
                 return torch.Tensor([agent.reward]).double()
 
             else:
@@ -40,11 +41,11 @@ def mj_torch_block_factory(agent, mode):
 
             # We should need to calculate gradients only once per dynamics/reward cycle
             if mode == "dynamics":
-                state_jacobian = 0.95*torch.from_numpy(agent.dynamics_gradients["state"])
-                action_jacobian = 0.95*torch.from_numpy(agent.dynamics_gradients["action"])
+                state_jacobian = 1*torch.from_numpy(agent.dynamics_gradients["state"])
+                action_jacobian = torch.from_numpy(agent.dynamics_gradients["action"])
             elif mode == "reward":
                 mj_gradients(ctx.data_snapshot, ctx.next_state, ctx.reward, test=True)
-                state_jacobian = torch.from_numpy(agent.reward_gradients["state"])
+                state_jacobian = 1*torch.from_numpy(agent.reward_gradients["state"])
                 action_jacobian = torch.from_numpy(agent.reward_gradients["action"])
             else:
                 raise TypeError("mode has to be 'dynamics' or 'reward'")

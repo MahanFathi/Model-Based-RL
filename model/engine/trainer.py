@@ -30,7 +30,7 @@ def do_training(
     # get the trainer logger and visdom
     visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
     visdom.register_keys(['total_loss', 'average_std', 'average_action', "reinforce_loss",
-                          "objective_loss", "action", "sd"])
+                          "objective_loss", "action", "sd", "action_grad", "sd_grad"])
     logger = setup_logger("model.engine.trainer", output_dir, 'logs')
     logger.info("Start training")
     logger.info("Running with config:\n{}".format(cfg))
@@ -52,7 +52,7 @@ def do_training(
 
     # Start training
     for epoch_idx in range(cfg.SOLVER.EPOCHS):
-        batch_loss = torch.empty(cfg.MODEL.POLICY.BATCH_SIZE, cfg.MODEL.POLICY.MAX_HORIZON_STEPS)
+        batch_loss = torch.empty(cfg.MODEL.POLICY.BATCH_SIZE, cfg.MODEL.POLICY.MAX_HORIZON_STEPS, dtype=torch.float64)
         steps_per_episode = np.zeros((cfg.MODEL.POLICY.BATCH_SIZE,))
         for episode_idx in range(cfg.MODEL.POLICY.BATCH_SIZE):
             # episode_loss = torch.empty(cfg.MODEL.POLICY.MAX_HORIZON_STEPS, dtype=torch.float64)
@@ -90,11 +90,12 @@ def do_training(
         if epoch_idx % cfg.LOG.PERIOD == 0:
             visdom.update({'episode_length': [np.mean(steps_per_episode)], **loss})
             #if cfg.MODEL.POLICY.VARIATIONAL:
-            visdom.update({'average_std': [np.mean(model.policy_net.clamped_sd)]})
-            visdom.update({'average_action': [np.mean(model.policy_net.clamped_action)]})
-            visdom.set({'action': np.mean(model.policy_net.clamped_action, axis=2).flatten().transpose()})
-            visdom.set({'sd': np.mean(model.policy_net.clamped_sd, axis=2).flatten().transpose()})
-            print(model.policy_net.clamped_action)
+            visdom.update({'average_std': [np.mean(model.policy_net.clamped_sd, axis=(1, 2)).squeeze()]})
+            visdom.update({'average_action': [np.mean(model.policy_net.clamped_action, axis=(1, 2)).squeeze()]})
+            visdom.set({'action': np.mean(model.policy_net.clamped_action, axis=2).transpose()})
+            visdom.set({'sd': np.mean(model.policy_net.clamped_sd, axis=2).transpose()})
+            visdom.set({'action_grad': np.cbrt(model.policy_net.mean.grad.detach().numpy().transpose())})
+            visdom.set({'sd_grad': np.cbrt(model.policy_net.sd.grad.detach().numpy().transpose())})
             logger.info("REWARD: \t\t{} (iteration {})".format(loss["total_loss"], epoch_idx))
 
         if epoch_idx % cfg.LOG.PLOT.ITER_PERIOD == 0:
@@ -106,7 +107,7 @@ def do_training(
 
         if cfg.LOG.TESTING.ON:
             if epoch_idx % cfg.LOG.TESTING.ITER_PERIOD == 0:
-                logger.info("TESTING ... ")
+                #logger.info("TESTING ... ")
                 video_recorder.path = os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx))
                 test_rewards = []
                 #model.policy_net.action_mean.data = action_mean

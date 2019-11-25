@@ -52,6 +52,10 @@ class VisdomLogger(dict):
             x_values = np.arange(len(self[k]))
             if len(x_values) < 1:
                 continue
+#            if y_values.size > 1:
+#                x_values = np.reshape(x_values, (len(x_values), 1))
+            if len(y_values.shape) > 1 and y_values.shape[1]==1:
+                y_values = y_values.squeeze()
             self.visdom.line(Y=y_values, X=x_values, win=self.plot_attributes[k]['win_id'],
                              opts={'title': k.upper()}, update='append')
             # self[k] = []
