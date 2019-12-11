@@ -32,7 +32,6 @@ class Basic(nn.Module):
         # We're generally using torch.float64 and numpy.float64 for precision, but the net can be trained with
         # torch.float32 -- not sure if this really makes a difference wrt speed or memory, but the default layers
         # seem to be using torch.float32
-        # TODO do we stop the flow here?
         action = self.policy_net(state.detach().float()).double()
 
         # Forward block will drive the simulation forward

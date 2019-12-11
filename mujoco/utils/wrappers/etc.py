@@ -2,6 +2,7 @@ import gym
 import torch
 import numpy as np
 from copy import deepcopy
+from utils.index import Index
 
 
 class AccumulateWrapper(gym.Wrapper):
@@ -90,7 +91,7 @@ class SnapshotWrapper(gym.Wrapper):
         class DataSnapshot:
             # Note: You should not modify these parameters after creation
 
-            def __init__(self, d_source):
+            def __init__(self, d_source, step_idx):
                 self.time = deepcopy(d_source.time)
                 self.qpos = deepcopy(d_source.qpos)
                 self.qvel = deepcopy(d_source.qvel)
@@ -98,12 +99,14 @@ class SnapshotWrapper(gym.Wrapper):
                 self.ctrl = deepcopy(d_source.ctrl)
                 self.act = deepcopy(d_source.act)
 
+                self.step_idx = deepcopy(step_idx)
+
                 # These probably aren't necessary, but they should fix the body in the same position with
                 # respect to worldbody frame?
                 self.body_xpos = deepcopy(d_source.body_xpos)
                 self.body_xquat = deepcopy(d_source.body_xquat)
 
-        return DataSnapshot(self.env.sim.data)
+        return DataSnapshot(self.env.sim.data, self.get_step_idx())
 
     def set_snapshot(self, snapshot_data):
         self.env.sim.data.time = deepcopy(snapshot_data.time)
@@ -114,5 +117,60 @@ class SnapshotWrapper(gym.Wrapper):
         if snapshot_data.act is not None:
             self.env.sim.data.act[:] = deepcopy(snapshot_data.act)
 
+        self.set_step_idx(snapshot_data.step_idx)
+
         self.env.sim.data.body_xpos[:] = deepcopy(snapshot_data.body_xpos)
         self.env.sim.data.body_xquat[:] = deepcopy(snapshot_data.body_xquat)
+
+
+class IndexWrapper(gym.Wrapper):
+    """Counts steps and episodes"""
+
+    def __init__(self, env, batch_size):
+        super(IndexWrapper, self).__init__(env)
+        self._step_idx = Index(0)
+        self._episode_idx = Index(0)
+        self._batch_idx = Index(0)
+        self._batch_size = batch_size
+
+        # Add references to the unwrapped env because we're going to need at least step_idx
+        # NOTE! This means we can never overwrite self.step_idx, self.episode_idx, or self.batch_idx or we lose
+        # the reference
+        env.unwrapped._step_idx = self._step_idx
+        env.unwrapped._episode_idx = self._episode_idx
+        env.unwrapped._batch_idx = self._batch_idx
+
+    def step(self, action):
+        self._step_idx += 1
+        return self.env.step(action)
+
+    def reset(self, update_episode_idx=True):
+        self._step_idx.set(0)
+
+        # We don't want to update episode_idx during testing
+        if update_episode_idx:
+            if self._episode_idx == self._batch_size:
+                self._batch_idx += 1
+                self._episode_idx.set(1)
+            else:
+                self._episode_idx += 1
+
+        return self.env.reset()
+
+    def get_step_idx(self):
+        return self._step_idx
+
+    def get_episode_idx(self):
+        return self._episode_idx
+
+    def get_batch_idx(self):
+        return self._batch_idx
+
+    def set_step_idx(self, idx):
+        self._step_idx.set(idx)
+
+    def set_episode_idx(self, idx):
+        self._episode_idx.set(idx)
+
+    def set_batch_idx(self, idx):
+        self._batch_idx.set(idx)

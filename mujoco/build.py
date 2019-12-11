@@ -1,20 +1,26 @@
 from mujoco import envs
-from .utils import MjBlockWrapper, SnapshotWrapper
+from mujoco.utils.wrappers.mj_block import MjBlockWrapper
+from mujoco.utils.wrappers.etc import SnapshotWrapper, IndexWrapper
 
 
 def build_agent(cfg):
     agent_factory = getattr(envs, cfg.MUJOCO.ENV)
     agent = agent_factory()
+#    if cfg.MUJOCO.REWARD_SCALE != 1.0:
+#        from .utils import RewardScaleWrapper
+#        agent = RewardScaleWrapper(agent, cfg.MUJOCO.REWARD_SCALE)
+#    if cfg.MUJOCO.CLIP_ACTIONS:
+#        from .utils import ClipActionsWrapper
+#        agent = ClipActionsWrapper(agent)
+#    if cfg.MODEL.POLICY.ARCH == 'TrajOpt':
+#        from .utils import FixedStateWrapper
+#        agent = FixedStateWrapper(agent)
+
+    # Keep track of step, episode, and batch indices
+    agent = IndexWrapper(agent, cfg.MODEL.BATCH_SIZE)
+
+    # Grab and set snapshots of data
     agent = SnapshotWrapper(agent)
-    if cfg.MUJOCO.REWARD_SCALE != 1.0:
-        from .utils import RewardScaleWrapper
-        agent = RewardScaleWrapper(agent, cfg.MUJOCO.REWARD_SCALE)
-    if cfg.MUJOCO.CLIP_ACTIONS:
-        from .utils import ClipActionsWrapper
-        agent = ClipActionsWrapper(agent)
-    if cfg.MODEL.POLICY.ARCH == 'TrajOpt':
-        from .utils import FixedStateWrapper
-        agent = FixedStateWrapper(agent)
 
     # This should probably be last so we get all wrappers
     agent = MjBlockWrapper(agent)

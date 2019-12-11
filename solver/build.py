@@ -18,6 +18,6 @@ def build_optimizer(cfg, named_parameters):
             weight_decay = cfg.SOLVER.WEIGHT_DECAY_SD
         params += [{"params": [value], "lr": lr}]
 
-    # optimizer = torch.optim.SGD(params, lr, momentum=cfg.SOLVER.MOMENTUM)
+    #optimizer = torch.optim.SGD(params, lr, momentum=cfg.SOLVER.MOMENTUM)
     optimizer = torch.optim.Adam(params, lr, betas=cfg.SOLVER.ADAM_BETAS)
     return optimizer

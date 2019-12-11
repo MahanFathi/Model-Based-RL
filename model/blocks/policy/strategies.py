@@ -6,6 +6,8 @@ from torch import nn
 from model.layers import FeedForward
 from solver import build_optimizer
 from torch.nn.parameter import Parameter
+from optimizer import Optimizer
+from utils.index import Index
 
 
 class BaseStrategy(ABC, nn.Module):
@@ -24,13 +26,13 @@ class BaseStrategy(ABC, nn.Module):
         self.state_dim = agent.observation_space.sample().shape[0]
         self.horizon = cfg.MODEL.POLICY.MAX_HORIZON_STEPS
         self.dim = (self.action_dim, self.horizon)
-        self.batch_size = cfg.MODEL.POLICY.BATCH_SIZE
+        self.batch_size = cfg.MODEL.BATCH_SIZE
 
         # Set initial values
         self.mean = []
         self.clamped_action = []
         self.sd = []
-        self.clamped_sd = []
+        #self.clamped_sd = []
         self.min_sd = min_sd
         self.soft_relu_beta = soft_relu_beta
         self.best_actions = []
@@ -49,40 +51,25 @@ class BaseStrategy(ABC, nn.Module):
         self.adam_betas = adam_betas
         self.optimize_functions = {"default": self.standard_optimize, "H": self.H_optimize}
 
-        # In case we want to track episode and step
-        self.step_idx = 0
-        self.episode_idx = 0
-        agent.step_idx = self.step_idx
+        # Get references in case we want to track episode and step
+        self.step_idx = agent.get_step_idx()
+        self.episode_idx = agent.get_episode_idx()
 
     @abstractmethod
-    def _optimize(self, batch_loss):
-        pass
-
     def optimize(self, batch_loss):
-        loss = self._optimize(batch_loss)
-        self.episode_idx = 0
-        return loss
-
-    @abstractmethod
-    def _forward(self, state):
         pass
 
+    #def optimize(self, batch_loss):
+    #    loss = self._optimize(batch_loss)
+    #    return loss
+
+    @abstractmethod
     def forward(self, state):
-        action = self._forward(state)
-        self.step_idx += 1
-        return action
-
-    @abstractmethod
-    def _episode_callback(self):
         pass
 
-    def episode_callback(self):
-        self._episode_callback()
-        self.step_idx = 0
-        if self.training:
-            self.episode_idx += 1
-
-        # TODO we should have a separate self.episode_idx for testing in case we test with more episodes than just one
+    #def forward(self, state):
+    #    action = self._forward(state)
+    #    return action
 
     @staticmethod
     def clip(x, mean, limit):
@@ -95,10 +82,16 @@ class BaseStrategy(ABC, nn.Module):
         return (torch.sqrt(x**2 + beta**2) + x) / 2.0
 
     # From Tassa 2012 synthesis and stabilization of complex behaviour
-    def get_clamped_sd(self, sd):
+    def clamp_sd(self, sd):
         #return sd
-        #return torch.exp(sd)
-        return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
+        return torch.exp(sd)
+        #return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
+
+    def get_clamped_sd(self):
+        return self.clamp_sd(self.sd).detach().numpy()
+
+    def get_clamped_action(self):
+        return self.clamped_action
 
     def initialise_mean(self, loc=0.0, sd=0.1, seed=0):
         if self.dim is not None:
@@ -151,11 +144,31 @@ class BaseStrategy(ABC, nn.Module):
         #        ret[episode_idx, -step_idx] = R
         #avg_stepwise_loss = torch.mean(-ret, dim=0)
 
+        #means = torch.mean(batch_loss, dim=0)
+        #idxs = means > torch.mean(means).detach()
+        #idxs = sums < np.mean(sums)
+
+        #advantages = torch.zeros((1, batch_loss.shape[1]))
+        #advantages = []
+        #idxs = batch_loss < torch.mean(batch_loss)
+        #for i in range(batch_loss.shape[1]):
+        #    avg = torch.mean(batch_loss[:,i]).detach().numpy()
+        #    idxs = batch_loss[:,i].detach().numpy() < avg
+        #    advantages[0,i] = torch.mean(batch_loss[idxs,i], dim=0)
+        #    if torch.any(idxs[:,i]):
+        #        advantages.append(torch.mean(batch_loss[idxs[:,i],i], dim=0))
+
+        #batch_loss = (batch_loss - batch_loss.mean(dim=0).detach()) / (batch_loss.std(dim=0).detach() + self.eps)
+        #advantages = batch_loss / (batch_loss.std(dim=0).detach() + self.eps)
+
         if stepwise_loss:
             return torch.mean(batch_loss, dim=0)
         else:
-            #return torch.mean(torch.sum(batch_loss, dim=1))
-            return torch.sum(torch.mean(batch_loss, dim=0))
+            #return torch.sum(advantages[advantages<0])
+            return torch.mean(torch.sum(batch_loss, dim=1))
+            #return torch.sum(torch.mean(batch_loss, dim=0))
+            #return torch.sum(batch_loss)
+            #return torch.sum(torch.stack(advantages))
 
         # Remove baseline
         #advantages = ((ret - ret.mean(dim=0)) / (ret.std(dim=0) + self.eps))
@@ -193,7 +206,7 @@ class BaseStrategy(ABC, nn.Module):
         objective_loss = self.calculate_objective_loss(batch_loss)
 
         # Return an interpolated mix of the objective loss and REINFORCE loss
-        clamped_sd = self.get_clamped_sd(self.sd)
+        clamped_sd = self.clamp_sd(self.sd)
         mix_factor = 0.5*((clamped_sd - self.min_sd) / (self.initial_clamped_sd - self.min_sd)).mean().detach().numpy()
         mix_factor = self.min_reinforce_loss_weight + (1.0 - self.min_reinforce_loss_weight)*mix_factor
         mix_factor = np.maximum(np.minimum(mix_factor, 1), 0)
@@ -212,7 +225,7 @@ class BaseStrategy(ABC, nn.Module):
         objective_loss = self.calculate_objective_loss(batch_loss, stepwise_loss=True)
 
         # Return an interpolated mix of the objective loss and REINFORCE loss
-        clamped_sd = self.get_clamped_sd(self.sd)
+        clamped_sd = self.clamp_sd(self.sd)
         mix_factor = 0.5*((clamped_sd - self.min_sd) / (self.initial_clamped_sd - self.min_sd)).detach()
         mix_factor = self.min_reinforce_loss_weight + (1.0 - self.min_reinforce_loss_weight)*mix_factor
         mix_factor = torch.max(torch.min(mix_factor, torch.ones_like(mix_factor)), torch.zeros_like(mix_factor))
@@ -258,6 +271,7 @@ class BaseStrategy(ABC, nn.Module):
 
         self.optimizer.zero_grad()
         loss.backward()
+        #nn.utils.clip_grad_norm_(self.parameters(), 0.1)
         self.optimizer.step()
 
         # Empty log probs
@@ -292,7 +306,7 @@ class VariationalOptimization(BaseStrategy):
         super(VariationalOptimization, self).__init__(*args, **kwargs)
 
         # Initialise mean and sd
-        self.mean_network = False
+        self.mean_network = True
         if self.mean_network:
             # Set a feedforward network for means
             self.mean = FeedForward(
@@ -310,9 +324,9 @@ class VariationalOptimization(BaseStrategy):
 
         # Set tensors for standard deviations
         self.sd = Parameter(torch.from_numpy(self.initialise_sd(self.cfg.MODEL.POLICY.INITIAL_LOG_SD)))
-        self.initial_clamped_sd = self.get_clamped_sd(self.sd.detach())
+        self.initial_clamped_sd = self.clamp_sd(self.sd.detach())
         self.register_parameter("sd", self.sd)
-        self.clamped_sd = np.zeros((self.action_dim, self.horizon, self.batch_size), dtype=np.float64)
+        #self.clamped_sd = np.zeros((self.action_dim, self.horizon), dtype=np.float64)
         self.clamped_action = np.zeros((self.action_dim, self.horizon, self.batch_size), dtype=np.float64)
 
         # Initialise optimizer
@@ -328,13 +342,13 @@ class VariationalOptimization(BaseStrategy):
         # We need log probabilities for calculating REINFORCE loss
         self.log_prob = torch.empty(self.batch_size, self.horizon, dtype=torch.float64)
 
-    def _forward(self, state):
+    def forward(self, state):
 
         # Get clamped sd
-        clamped_sd = self.get_clamped_sd(self.sd[:, self.step_idx])
+        clamped_sd = self.clamp_sd(self.sd[:, self.step_idx])
 
-        if self.training:
-            self.clamped_sd[:, self.step_idx, self.episode_idx] = clamped_sd.detach().numpy()
+        #if self.training:
+        #    self.clamped_sd[:, self.step_idx, self.episode_idx] = clamped_sd.detach().numpy()
 
         # Get mean of action value
         if self.mean_network:
@@ -342,8 +356,11 @@ class VariationalOptimization(BaseStrategy):
         else:
             mean = self.mean[:, self.step_idx]
 
+        if not self.training:
+            return mean
+
         # Get normal distribution
-        dist = torch.distributions.Normal(mean, clamped_sd)
+        dist = torch.distributions.Normal(mean, 0.05)
 
         # Sample action
         if self.method == "H" and self.episode_idx == 0:
@@ -352,24 +369,20 @@ class VariationalOptimization(BaseStrategy):
             else:
                 action = torch.from_numpy(self.best_actions[:, self.step_idx])
         else:
-            action = dist.rsample()
-            #action = mean
+            #action = dist.rsample()
+            action = mean
 
             # Clip action
             #action = self.clip(action, mean, 2.0*clamped_sd)
 
-        if self.training:
-            self.clamped_action[:, self.step_idx, self.episode_idx] = action.detach().numpy()
-            # Get log prob for REINFORCE loss calculations
-            self.log_prob[self.episode_idx, self.step_idx] = dist.log_prob(action.detach()).sum()
+        self.clamped_action[:, self.step_idx, self.episode_idx-1] = action.detach().numpy()
+        # Get log prob for REINFORCE loss calculations
+        self.log_prob[self.episode_idx-1, self.step_idx] = dist.log_prob(action.detach()).sum()
 
         return action
 
-    def _optimize(self, batch_loss):
+    def optimize(self, batch_loss):
         return self.optimize_functions.get(self.method, self.standard_optimize)(batch_loss)
-
-    def _episode_callback(self):
-        pass
 
 
 class CMAES(BaseStrategy):
@@ -391,18 +404,64 @@ class CMAES(BaseStrategy):
         self.optimizer = cma.CMAEvolutionStrategy(self.mean, 0.05, inopts=cmaes_options)
         self.actions = []
 
-    def _forward(self, state):
+    def forward(self, state):
 
         # If we've hit the end of minibatch we need to sample more actions
-        if self.step_idx == 0 and self.episode_idx == 0:
+        if self.step_idx == 0 and self.episode_idx - 1 == 0 and self.training:
             self.actions = self.optimizer.ask()
 
         # Get action
-        action = self.actions[self.episode_idx][self.step_idx]
+        action = self.actions[self.episode_idx-1][self.step_idx]
 
         return torch.DoubleTensor(np.asarray(action))
 
-    def _optimize(self, batch_loss):
+    def optimize(self, batch_loss):
         loss = batch_loss.sum(axis=1)
         self.optimizer.tell(self.actions, loss.detach().numpy())
         return {"objective_loss": [loss.detach().numpy().mean()], "total_loss": [loss.detach().numpy().mean()]}
+
+
+class Perttu(BaseStrategy):
+    def __init__(self, *args, **kwargs):
+        super(Perttu, self).__init__(*args, **kwargs)
+
+        # Initialise optimizer object
+        self.optimizer = \
+            Optimizer(mode=self.method,
+                      initialMean=np.random.normal(self.cfg.MODEL.POLICY.INITIAL_ACTION_MEAN,
+                                                   self.cfg.MODEL.POLICY.INITIAL_ACTION_SD,
+                                                   (self.action_dim, self.horizon)),
+                      initialSd=0.25*np.ones((self.action_dim, self.horizon)),
+                      #initialSd=0.2*np.ones((1,1)),
+                      learningRate=self.cfg.SOLVER.BASE_LR,
+                      adamBetas=(0.9, 0.99),
+                      minReinforceLossWeight=0.0,
+                      nBatch=self.cfg.MODEL.BATCH_SIZE)
+
+    def forward(self, state):
+
+        # If we've hit the end of minibatch we need to sample more actions
+        if self.step_idx == 0 and self.episode_idx-1 == 0 and self.training:
+            if self.method == "CMA-ES":
+                samples = self.optimizer.ask()
+                self.actions = torch.empty(self.action_dim, self.horizon, self.batch_size)
+                for ep_idx, ep_actions in enumerate(samples):
+                    self.actions[:, :, ep_idx] = torch.reshape(ep_actions, (self.action_dim, self.horizon))
+            else:
+                self.actions = self.optimizer.ask().permute(1, 2, 0)
+
+        # Get action
+        action = self.actions[:, self.step_idx, self.episode_idx-1]
+
+        return action.double()
+
+    def optimize(self, batch_loss):
+        loss, meanFval = self.optimizer.tell(batch_loss)
+        return {"objective_loss": float(meanFval), "total_loss": float(loss)}
+
+    def get_clamped_sd(self):
+        return self.optimizer.getClampedSd().detach().numpy()
+
+    def get_clamped_action(self):
+        # Might need to reshape
+        return self.actions.detach().numpy()

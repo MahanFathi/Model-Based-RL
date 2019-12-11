@@ -10,6 +10,7 @@ import torch
 niter = 30
 nwarmup = 3
 eps = 1e-6
+nsteps = 2
 
 
 def copy_data(m, d_source, d_dest):
@@ -364,14 +365,22 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
         info = agent.step(d.ctrl.copy())
 
         # Sanity check. "reward" must equal info[1], otherwise this simulation has diverged from the forward pass
-        assert reward == info[1], "reward is different from forward pass [{} != {}]".format(reward, info[1])
+        assert reward == info[1], "reward is different from forward pass [{} != {}] at timepoint {}".format(reward, info[1], data_snapshot.time)
 
         # Another check. "next_state" must equal info[0], otherwise this simulation has diverged from the forward pass
         assert (next_state == info[0]).all(), "state is different from forward pass"
 
     # Get state from the forward pass
-    qpos_fwd = next_state[:agent.model.nq]
-    qvel_fwd = next_state[agent.model.nq:]
+    if nsteps > 1:
+        agent.set_snapshot(data_snapshot)
+        for _ in range(nsteps):
+            info = agent.step(d.ctrl.copy())
+        qpos_fwd = info[0][:agent.model.nq]
+        qvel_fwd = info[0][agent.model.nq:]
+        reward = info[1]
+    else:
+        qpos_fwd = next_state[:agent.model.nq]
+        qvel_fwd = next_state[agent.model.nq:]
 
     # finite-difference over control values: skip = mjSTAGE_VEL
     for i in range(m.nu):
@@ -383,7 +392,8 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
         d.ctrl[i] += eps
 
         # Step with perturbed simulation
-        info = agent.step(d.ctrl.copy())
+        for _ in range(nsteps):
+            info = agent.step(d.ctrl.copy())
 
         # Compute gradients of qpos and qvel wrt control
         dsdctrl[:m.nq, i] = (d.qpos - qpos_fwd) / eps
@@ -402,7 +412,8 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
         d.qvel[i] += eps
 
         # Step with perturbed simulation
-        info = agent.step(d.ctrl)
+        for _ in range(nsteps):
+            info = agent.step(d.ctrl)
 
         # Compute gradients of qpos and qvel wrt qvel
         dsdqvel[:m.nq, i] = (d.qpos - qpos_fwd) / eps
@@ -439,7 +450,8 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
             d.qpos[m.jnt_qposadr[jid] + i - m.jnt_dofadr[jid]] += eps
 
         # Step simulation with perturbed position
-        info = agent.step(d.ctrl)
+        for _ in range(nsteps):
+            info = agent.step(d.ctrl)
 
         # Compute gradients of qpos and qvel wrt qpos
         dsdqpos[:m.nq, i] = (d.qpos - qpos_fwd) / eps

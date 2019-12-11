@@ -5,6 +5,7 @@ def do_testing(
         model,
         agent,
         video_recorder,
+        samples=None,
         first_state=None
 ):
 
@@ -15,17 +16,17 @@ def do_testing(
     with torch.no_grad():
 
         if first_state is None:
-            state = torch.Tensor(agent.reset())
+            state = torch.Tensor(agent.reset(update_episode_idx=False))
         else:
             state = first_state
             agent.set_from_torch_state(state)
         reward_sum = 0.
         episode_iteration = 0
-        while episode_iteration < cfg.MODEL.POLICY.MAX_HORIZON_STEPS:
-            episode_iteration += 1
+        for step_idx in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
             agent.render()
             # video_recorder.capture_frame()
             #action = model(state)
+            #state, reward = model(state, samples[:, step_idx])
             state, reward = model(state)
             #state, reward, done, _ = agent.step(action)
             reward_sum += reward
