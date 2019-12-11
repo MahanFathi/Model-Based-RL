@@ -27,7 +27,7 @@ class InvertedDoublePendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         v1, v2 = self.sim.data.qvel[1:3]
         vel_penalty = 1e-3 * v1 ** 2 + 5e-3 * v2 ** 2
         alive_bonus = 10
-        r = alive_bonus - dist_penalty - vel_penalty
+        r = - dist_penalty - vel_penalty
         done = bool(y <= 1)
         return ob, r, done, {}
 
@@ -40,8 +40,8 @@ class InvertedDoublePendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def reset_model(self):
         self.set_state(
-            self.init_qpos + self.np_random.uniform(low=-.1, high=.1, size=self.model.nq),
-            self.init_qvel + self.np_random.randn(self.model.nv) * .1
+            self.init_qpos,# + self.np_random.uniform(low=-.1, high=.1, size=self.model.nq),
+            self.init_qvel# + self.np_random.randn(self.model.nv) * .1
         )
         return self._get_obs()
 

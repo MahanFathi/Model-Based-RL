@@ -41,9 +41,10 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         ])
 
     def reset_model(self):
-        qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
-        qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
-        self.set_state(qpos, qvel)
+        #qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
+        #qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
+        #self.set_state(qpos, qvel)
+        self.set_state(self.init_qpos, self.init_qvel)
         return self._get_obs()
 
     def viewer_setup(self):
