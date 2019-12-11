@@ -38,7 +38,10 @@ class VisdomLogger(dict):
         """
         for key, val in new_records.items():
             if key in self.keys():
-                self[key].extend(val)
+                if isinstance(val, list):
+                    self[key].extend(val)
+                else:
+                    self[key].append(val)
 
     def set(self, record):
         """Set a record (replaces old data)"""
@@ -54,7 +57,7 @@ class VisdomLogger(dict):
                 continue
 #            if y_values.size > 1:
 #                x_values = np.reshape(x_values, (len(x_values), 1))
-            if len(y_values.shape) > 1 and y_values.shape[1]==1:
+            if len(y_values.shape) > 1 and y_values.shape[1]==1 and y_values.size != 1:
                 y_values = y_values.squeeze()
             self.visdom.line(Y=y_values, X=x_values, win=self.plot_attributes[k]['win_id'],
                              opts={'title': k.upper()}, update='append')
