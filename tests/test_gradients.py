@@ -4,8 +4,7 @@ import torch
 import numpy as np
 from model.config import get_cfg_defaults
 from mujoco import build_agent
-from copy import deepcopy
-
+from utils.index import Index
 
 class TestGradients(unittest.TestCase):
 
@@ -79,7 +78,7 @@ class TestGradients(unittest.TestCase):
         # Run multiple times with different sigma for generating action values
         N = 100
         sigma = np.linspace(1e-2, 1e1, N)
-        cfg_file = "/home/aleksi/Workspace/Model-Based-RL/configs/inverted_pendulum.yaml"
+        cfg_file = "/home/aleksi/Workspace/Model-Based-RL/configs/leg.yaml"
 
         for s in sigma:
             self.run_reward_test(cfg_file, s)
@@ -149,7 +148,7 @@ class TestGradients(unittest.TestCase):
         # Run multiple times with different sigma for generating action values
         N = 100
         sigma = np.linspace(1e-2, 1e1, N)
-        cfg_file = "/home/aleksi/Workspace/Model-Based-RL/configs/swimmer.yaml"
+        cfg_file = "/home/aleksi/Workspace/Model-Based-RL/configs/leg.yaml"
 
         for s in sigma:
             self.run_dynamics_reward_test(cfg_file, s)
