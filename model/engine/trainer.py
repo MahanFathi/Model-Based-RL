@@ -28,15 +28,17 @@ def do_training(
     model.train()
 
     # Set up visdom
-    visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
-    visdom.register_keys(['total_loss', 'average_sd', 'average_action', "reinforce_loss",
-                          "objective_loss", "sd", "action_grad", "sd_grad"])
-    for action_idx in range(model.policy_net.action_dim):
-        visdom.register_keys(["action_" + str(action_idx)])
+    if cfg.LOG.PLOT.ENABLED:
+        visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
+        visdom.register_keys(['total_loss', 'average_sd', 'average_action', "reinforce_loss",
+                              "objective_loss", "sd", "action_grad", "sd_grad"])
+        for action_idx in range(model.policy_net.action_dim):
+            visdom.register_keys(["action_" + str(action_idx)])
 
     # wrap screen recorder if testing mode is on
     if cfg.LOG.TESTING.ENABLED:
-        visdom.register_keys(['test_reward'])
+        if cfg.LOG.PLOT.ENABLED:
+            visdom.register_keys(['test_reward'])
         # NOTE: wrappers here won't affect the PyTorch MuJoCo blocks
         from gym.wrappers.monitoring.video_recorder import VideoRecorder
         video_recorder = VideoRecorder(agent)
@@ -63,21 +65,24 @@ def do_training(
         output["epoch"].append(epoch_idx)
 
         if epoch_idx % cfg.LOG.PERIOD == 0:
-            visdom.update(loss)
 
-            clamped_sd = model.policy_net.get_clamped_sd()
-            clamped_action = model.policy_net.get_clamped_action()
+            if cfg.LOG.PLOT.ENABLED:
+                visdom.update(loss)
 
-            visdom.update({'average_sd': np.mean(clamped_sd, axis=1)})
-            visdom.update({'average_action': np.mean(clamped_action, axis=(1, 2)).squeeze()})
+                clamped_sd = model.policy_net.get_clamped_sd()
+                clamped_action = model.policy_net.get_clamped_action()
 
-            for action_idx in range(model.policy_net.action_dim):
-                visdom.set({'action_'+str(action_idx): clamped_action[action_idx, :, :]})
-            if clamped_sd is not None:
-                visdom.set({'sd': clamped_sd.transpose()})
+                visdom.update({'average_sd': np.mean(clamped_sd, axis=1)})
+                visdom.update({'average_action': np.mean(clamped_action, axis=(1, 2)).squeeze()})
+
+                for action_idx in range(model.policy_net.action_dim):
+                    visdom.set({'action_'+str(action_idx): clamped_action[action_idx, :, :]})
+                if clamped_sd is not None:
+                    visdom.set({'sd': clamped_sd.transpose()})
+
             logger.info("REWARD: \t\t{} (iteration {})".format(loss["total_loss"], epoch_idx))
 
-        if epoch_idx % cfg.LOG.PLOT.ITER_PERIOD == 0:
+        if cfg.LOG.PLOT.ENABLED and epoch_idx % cfg.LOG.PLOT.ITER_PERIOD == 0:
             visdom.do_plotting()
 
         if epoch_idx % cfg.LOG.CHECKPOINT_PERIOD == 0:
@@ -86,7 +91,6 @@ def do_training(
 
         if cfg.LOG.TESTING.ENABLED:
             if epoch_idx % cfg.LOG.TESTING.ITER_PERIOD == 0:
-                #logger.info("TESTING ... ")
                 video_recorder.path = os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx))
                 test_rewards = []
                 for _ in range(cfg.LOG.TESTING.COUNT_PER_ITER):
@@ -98,12 +102,8 @@ def do_training(
                         # first_state=state_xr.get_item(),
                     )
                     test_rewards.append(test_reward)
-                #mean_reward = np.mean(test_rewards)
-                #visdom.update({'test_reward': [np.mean(mean_reward)]})
-                #logger.info("REWARD MEAN TEST: \t\t{}".format(mean_reward))
                 model.train()
                 # video_recorder.close()
-
 
     # Save outputs into log folder
     lg.save_dict_into_csv(output_results_dir, "output", output)
