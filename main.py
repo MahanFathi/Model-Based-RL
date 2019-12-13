@@ -50,7 +50,7 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        default="test",
+        default="train",
         metavar="mode",
         help="'train' or 'test'",
         type=str,
@@ -77,7 +77,8 @@ def main():
     cfg.freeze()
 
     # TRAIN
-    train(cfg, args.iter)
+    if args.mode == "train":
+        train(cfg, args.iter)
 
 
 if __name__ == "__main__":
