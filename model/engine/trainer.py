@@ -72,7 +72,8 @@ def do_training(
                 clamped_sd = model.policy_net.get_clamped_sd()
                 clamped_action = model.policy_net.get_clamped_action()
 
-                visdom.update({'average_sd': np.mean(clamped_sd, axis=1)})
+                if len(clamped_sd) > 0:
+                    visdom.update({'average_sd': np.mean(clamped_sd, axis=1)})
                 visdom.update({'average_action': np.mean(clamped_action, axis=(1, 2)).squeeze()})
 
                 for action_idx in range(model.policy_net.action_dim):
@@ -80,7 +81,7 @@ def do_training(
                 if clamped_sd is not None:
                     visdom.set({'sd': clamped_sd.transpose()})
 
-            logger.info("REWARD: \t\t{} (iteration {})".format(loss["total_loss"], epoch_idx))
+            logger.info("REWARD: \t\t{} (iteration {})".format(loss["objective_loss"], epoch_idx))
 
         if cfg.LOG.PLOT.ENABLED and epoch_idx % cfg.LOG.PLOT.ITER_PERIOD == 0:
             visdom.do_plotting()
