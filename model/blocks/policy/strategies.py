@@ -193,9 +193,9 @@ class BaseStrategy(ABC, nn.Module):
         # Return a sum of the objective loss and REINFORCE loss
         #loss = objective_loss + self.reinforce_loss_weight*reinforce_loss
         loss = objective_loss
-        return loss, {"objective_loss": [objective_loss.detach().numpy()],
-                      "reinforce_loss": [reinforce_loss.detach().numpy()],
-                      "total_loss": [loss.detach().numpy()]}
+        return loss, {"objective_loss": float(torch.mean(torch.sum(batch_loss, dim=1)).detach().numpy()),
+                      "reinforce_loss": float(reinforce_loss.detach().numpy()),
+                      "total_loss": float(loss.detach().numpy())}
 
     def IR_loss(self, batch_loss):
 
@@ -360,7 +360,7 @@ class VariationalOptimization(BaseStrategy):
             return mean
 
         # Get normal distribution
-        dist = torch.distributions.Normal(mean, 0.05)
+        dist = torch.distributions.Normal(mean, 0.01)
 
         # Sample action
         if self.method == "H" and self.episode_idx == 0:
@@ -369,8 +369,8 @@ class VariationalOptimization(BaseStrategy):
             else:
                 action = torch.from_numpy(self.best_actions[:, self.step_idx])
         else:
-            #action = dist.rsample()
-            action = mean
+            action = dist.rsample()
+            #action = mean
 
             # Clip action
             #action = self.clip(action, mean, 2.0*clamped_sd)
@@ -400,6 +400,9 @@ class CMAES(BaseStrategy):
         self.mean = self.initialise_mean()
         self.mean = np.reshape(self.mean, (self.mean.size,))
 
+        # We want to store original (list of batches) actions for tell
+        self.orig_actions = []
+
         # Initialise CMA-ES
         self.optimizer = cma.CMAEvolutionStrategy(self.mean, 0.05, inopts=cmaes_options)
         self.actions = []
@@ -408,17 +411,26 @@ class CMAES(BaseStrategy):
 
         # If we've hit the end of minibatch we need to sample more actions
         if self.step_idx == 0 and self.episode_idx - 1 == 0 and self.training:
-            self.actions = self.optimizer.ask()
+            self.orig_actions = self.optimizer.ask()
+            self.actions = torch.empty(self.action_dim, self.horizon, self.batch_size, dtype=torch.float64)
+            for ep_idx, ep_actions in enumerate(self.orig_actions):
+                self.actions[:, :, ep_idx] = torch.from_numpy(np.reshape(ep_actions, (self.action_dim, self.horizon)))
 
         # Get action
-        action = self.actions[self.episode_idx-1][self.step_idx]
+        action = self.actions[:, self.step_idx, self.episode_idx-1]
 
-        return torch.DoubleTensor(np.asarray(action))
+        return action
 
     def optimize(self, batch_loss):
         loss = batch_loss.sum(axis=1)
-        self.optimizer.tell(self.actions, loss.detach().numpy())
-        return {"objective_loss": [loss.detach().numpy().mean()], "total_loss": [loss.detach().numpy().mean()]}
+        self.optimizer.tell(self.orig_actions, loss.detach().numpy())
+        return {"objective_loss": float(loss.detach().numpy().mean()), "total_loss": float(loss.detach().numpy().mean())}
+
+    def get_clamped_sd(self):
+        return np.asarray(self.sd)
+
+    def get_clamped_action(self):
+        return self.actions.detach().numpy()
 
 
 class Perttu(BaseStrategy):
@@ -463,5 +475,4 @@ class Perttu(BaseStrategy):
         return self.optimizer.getClampedSd().detach().numpy()
 
     def get_clamped_action(self):
-        # Might need to reshape
         return self.actions.detach().numpy()
