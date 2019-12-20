@@ -42,7 +42,8 @@ class BaseStrategy(ABC, nn.Module):
         self.min_reinforce_loss_weight = min_reinforce_loss_weight
         self.reinforce_loss_weight = reinforce_loss_weight
         self.eps = np.finfo(np.float32).eps.item()
-        self.loss_functions = {"IR": self.IR_loss, "PR": self.PR_loss, "H": self.H_loss, "SIR": self.SIR_loss}
+        self.loss_functions = {"IR": self.IR_loss, "PR": self.PR_loss, "H": self.H_loss,
+                               "SIR": self.SIR_loss, "R": self.R_loss}
         self.log_prob = []
 
         # Set optimizer parameters
@@ -76,6 +77,11 @@ class BaseStrategy(ABC, nn.Module):
         xmin = mean - limit
         xmax = mean + limit
         return torch.max(torch.min(x, xmax), xmin)
+
+    @staticmethod
+    def clip_negative(x):
+        #return torch.max(x, torch.zeros(x.shape, dtype=torch.double))
+        return torch.abs(x)
 
     @staticmethod
     def soft_relu(x, beta=0.1):
@@ -181,6 +187,14 @@ class BaseStrategy(ABC, nn.Module):
         #else:
         #    return torch.sum(avg_stepwise_loss)
 
+    def R_loss(self, batch_loss):
+
+        # Get objective loss
+        objective_loss = self.calculate_objective_loss(batch_loss)
+
+        return objective_loss, {"objective_loss": float(torch.mean(torch.sum(batch_loss, dim=1)).detach().numpy()),
+                                "total_loss": float(objective_loss.detach().numpy())}
+
 
     def PR_loss(self, batch_loss):
 
@@ -191,8 +205,8 @@ class BaseStrategy(ABC, nn.Module):
         objective_loss = self.calculate_objective_loss(batch_loss)
 
         # Return a sum of the objective loss and REINFORCE loss
-        #loss = objective_loss + self.reinforce_loss_weight*reinforce_loss
-        loss = objective_loss
+        loss = objective_loss + self.reinforce_loss_weight*reinforce_loss
+
         return loss, {"objective_loss": float(torch.mean(torch.sum(batch_loss, dim=1)).detach().numpy()),
                       "reinforce_loss": float(reinforce_loss.detach().numpy()),
                       "total_loss": float(loss.detach().numpy())}
@@ -306,7 +320,7 @@ class VariationalOptimization(BaseStrategy):
         super(VariationalOptimization, self).__init__(*args, **kwargs)
 
         # Initialise mean and sd
-        self.mean_network = True
+        self.mean_network = False
         if self.mean_network:
             # Set a feedforward network for means
             self.mean = FeedForward(
@@ -369,10 +383,11 @@ class VariationalOptimization(BaseStrategy):
             else:
                 action = torch.from_numpy(self.best_actions[:, self.step_idx])
         else:
-            action = dist.rsample()
-            #action = mean
+            #action = dist.rsample()
+            action = mean
 
             # Clip action
+            action = self.clip_negative(action)
             #action = self.clip(action, mean, 2.0*clamped_sd)
 
         self.clamped_action[:, self.step_idx, self.episode_idx-1] = action.detach().numpy()
@@ -443,7 +458,7 @@ class Perttu(BaseStrategy):
                       initialMean=np.random.normal(self.cfg.MODEL.POLICY.INITIAL_ACTION_MEAN,
                                                    self.cfg.MODEL.POLICY.INITIAL_ACTION_SD,
                                                    (self.action_dim, self.horizon)),
-                      initialSd=0.25*np.ones((self.action_dim, self.horizon)),
+                      initialSd=self.cfg.MODEL.POLICY.INITIAL_SD*np.ones((self.action_dim, self.horizon)),
                       #initialSd=0.2*np.ones((1,1)),
                       learningRate=self.cfg.SOLVER.BASE_LR,
                       adamBetas=(0.9, 0.99),
