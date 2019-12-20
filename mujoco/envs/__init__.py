@@ -4,6 +4,7 @@ from .swimmer import SwimmerEnv
 from .inverted_pendulum import InvertedPendulumEnv
 from .inverted_double_pendulum import InvertedDoublePendulumEnv
 from .leg import LegEnv
+from .HandModelTSLAdjusted import HandModelTSLAdjustedEnv
 
 __all__ = [
     "HopperEnv",
@@ -11,5 +12,6 @@ __all__ = [
     "SwimmerEnv",
     "InvertedPendulumEnv",
     "InvertedDoublePendulumEnv",
-    "LegEnv"
+    "LegEnv",
+    "HandModelTSLAdjustedEnv"
 ]
