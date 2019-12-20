@@ -1,0 +1,914 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="HandModel 1.1">
+  <compiler inertiafromgeom="auto" angle="radian"></compiler>
+  <default>
+    <joint limited="true" damping="1" armature="0.01" stiffness="5"></joint>
+    <geom contype="1" conaffinity="1" condim="3" rgba="0.8 0.6 .4 1" margin="0.001" solref=".02 1" solimp=".8 .8 .01" material="geom"></geom>
+    <site size="0.001"></site>
+    <tendon width="0.001" rgba=".95 .3 .3 1" limited="false"></tendon>
+    <muscle scale="1000"></muscle>
+  </default>
+  <option timestep="0.002" iterations="50" solver="PGS">
+    <flag energy="enable"></flag>
+  </option>
+  <size nconmax="400"></size>
+  <visual>
+    <map fogstart="3" fogend="5" force="0.1"></map>
+    <quality shadowsize="2048"></quality>
+  </visual>
+  <worldbody>
+    <geom name="floor" pos="0 0 0" size="10 10 0.125" type="plane" material="MatPlane" condim="3"></geom>
+    <body name="torso" pos="       0        0        1" quat="0.7071067811865476 0.7071067811865475 0.0 0.0">
+      <light mode="trackcom" directional="false" diffuse=".8 .8 .8" specular="0.3 0.3 0.3" pos="0 0 4.0" dir="0 0 -1"></light>
+      <inertial pos="  0.0145 0.152288        0" mass="16.68" fullinertia="0.137572 0.086407  0.18616        0        0        0"></inertial>
+      <geom name="ribcageFB" type="mesh" mesh="ribcageFB"></geom>
+      <geom name="thoracic1FB" type="mesh" mesh="thoracic1FB"></geom>
+      <geom name="thoracic2FB" type="mesh" mesh="thoracic2FB"></geom>
+      <geom name="thoracic3FB" type="mesh" mesh="thoracic3FB"></geom>
+      <geom name="thoracic4FB" type="mesh" mesh="thoracic4FB"></geom>
+      <geom name="thoracic5FB" type="mesh" mesh="thoracic5FB"></geom>
+      <geom name="thoracic6FB" type="mesh" mesh="thoracic6FB"></geom>
+      <geom name="thoracic7FB" type="mesh" mesh="thoracic7FB"></geom>
+      <geom name="thoracic8FB" type="mesh" mesh="thoracic8FB"></geom>
+      <geom name="thoracic9FB" type="mesh" mesh="thoracic9FB"></geom>
+      <geom name="thoracic10FB" type="mesh" mesh="thoracic10FB"></geom>
+      <geom name="thoracic11FB" type="mesh" mesh="thoracic11FB"></geom>
+      <geom name="thoracic12FB" type="mesh" mesh="thoracic12FB"></geom>
+      <joint name="torso_TZ" type="slide" pos="0 0 0" axis="       0        0        1" limited="false" range="     -10       10" armature="0" damping="0" stiffness="0"></joint>
+      <joint name="torso_TY" type="slide" pos="0 0 0" axis="       0        1        0" limited="false" range="     -10       10" armature="0" damping="0" stiffness="0"></joint>
+      <joint name="torso_TX" type="slide" pos="0 0 0" axis="       1        0        0" limited="false" range="     -10       10" armature="0" damping="0" stiffness="0"></joint>
+      <joint name="torso_RY" type="hinge" pos="0 0 0" axis="       0        1        0" limited="true" range="-4.71239  4.71239" armature="0" damping="0" stiffness="0"></joint>
+      <joint name="torso_RX" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-4.71239  4.71239" armature="0" damping="0" stiffness="0"></joint>
+      <joint name="torso_RZ" type="hinge" pos="0 0 0" axis="       0        0        1" limited="true" range="-4.71239  4.71239" armature="0" damping="0" stiffness="0"></joint>
+      <body name="clavicle_r" pos="0.040079 0.285666 0.028903" quat="1.0 0.0 0.0 0.0">
+        <inertial pos="       0        0        0" mass="1e-07" fullinertia="   1e-07    1e-07    1e-07        0        0        0"></inertial>
+        <geom name="clavicle_rFB" type="mesh" mesh="clavicle_rFB"></geom>
+        <joint name="sternoclavicular_r_r3" type="hinge" pos="0 0 0" axis="-0.994473        0 -0.104997" limited="false" range="-99999.9  99999.9"></joint>
+        <joint name="sternoclavicular_r_r2" type="hinge" pos="0 0 0" axis="  0.0153 0.989299  -0.1451" limited="false" range="-99999.9  99999.9"></joint>
+        <body name="shoulder_marker_r" pos="   -0.03    0.035  -0.0289" quat="1.0 0.0 0.0 0.0">
+        </body>
+        <body name="clavphant_r" pos="-0.016265 0.022779 0.153832" quat="1.0 0.0 0.0 0.0">
+          <inertial pos="       0        0        0" mass="1e-07" fullinertia="   1e-07    1e-07    1e-07        0        0        0"></inertial>
+          <joint name="unrotscap_r_r2" type="hinge" pos="0 0 0" axis="  0.0153 0.989299  -0.1451" limited="false" range="-99999.9  99999.9"></joint>
+          <joint name="unrotscap_r_r3" type="hinge" pos="0 0 0" axis="-0.994473        0 -0.104997" limited="false" range="-99999.9  99999.9"></joint>
+          <body name="scapula_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+            <inertial pos="       0        0        0" mass="1e-07" fullinertia="   1e-07    1e-07    1e-07        0        0        0"></inertial>
+            <geom name="scapula_rFB" type="mesh" mesh="scapula_rFB"></geom>
+            <joint name="acromioclavicular_r_r1" type="hinge" pos="0 0 0" axis="  0.6377   0.1186   0.7611" limited="false" range="-99999.9  99999.9"></joint>
+            <joint name="acromioclavicular_r_r3" type="hinge" pos="0 0 0" axis="-0.754084 0.297594 0.585487" limited="false" range="-99999.9  99999.9"></joint>
+            <joint name="acromioclavicular_r_r2" type="hinge" pos="0 0 0" axis="0.157095 0.947269 -0.279291" limited="false" range="-99999.9  99999.9"></joint>
+            <body name="scapphant_r" pos="-0.010839 -0.03859 0.010215" quat="1.0 0.0 0.0 0.0">
+              <inertial pos="       0        0        0" mass="1e-07" fullinertia="   1e-07    1e-07    1e-07        0        0        0"></inertial>
+              <joint name="unrothum_r_r2" type="hinge" pos="0 0 0" axis="0.157095 0.947269 -0.279291" limited="false" range="-99999.9  99999.9"></joint>
+              <joint name="unrothum_r_r3" type="hinge" pos="0 0 0" axis="-0.754084 0.297594 0.585487" limited="false" range="-99999.9  99999.9"></joint>
+              <joint name="unrothum_r_r1" type="hinge" pos="0 0 0" axis="  0.6377   0.1186   0.7611" limited="false" range="-99999.9  99999.9"></joint>
+              <body name="humphant_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+                <inertial pos="       0        0        0" mass="1e-07" fullinertia="   1e-07    1e-07    1e-07        0        0        0"></inertial>
+                <joint name="elevation_angle_r" type="hinge" pos="0 0 0" axis="  0.0048 0.999089   0.0424" limited="true" range=" -1.5708  2.26893"></joint>
+                <body name="humphant1_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+                  <inertial pos="       0        0        0" mass="1e-07" fullinertia="   1e-07    1e-07    1e-07        0        0        0"></inertial>
+                  <joint name="shoulder1_r_r2" type="hinge" pos="0 0 0" axis="  0.0048 0.999089   0.0424" limited="false" range="-99999.9  99999.9"></joint>
+                  <joint name="shoulder_elevation_r" type="hinge" pos="0 0 0" axis="-0.998261   0.0023 0.058898" limited="true" range="       0  3.14159"></joint>
+                  <body name="humerus_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+                    <inertial pos="       0 -0.167619        0" mass="2.0325" fullinertia="0.012403 0.004279 0.013922        0        0        0"></inertial>
+                    <geom name="humerus_rFB" type="mesh" mesh="humerus_rFB"></geom>
+                    <site name="anconeus_r-P1" pos="-0.00744 -0.28359 0.00979"></site>
+                    <site name="brachialis_r-P1" pos="0.0068 -0.1739 -0.0036"></site>
+                    <site name="brachioradialis_r-P1" pos="-0.0098 -0.19963 0.00223"></site>
+                    <site name="pronator_teres_r-P1" pos="0.0036 -0.2759 -0.0365"></site>
+                    <site name="ext_carp_rad_long_r-P1" pos="-0.0073 -0.2609 0.0091"></site>
+                    <site name="ext_carp_rad_brev_r-P1" pos="0.01349 -0.29048 0.01698"></site>
+                    <site name="ext_carp_ulnaris_r-P1" pos="0.00083 -0.28955 0.0188"></site>
+                    <site name="flex_carpi_rad_r-P1" pos="0.00758 -0.27806 -0.03705"></site>
+                    <site name="flex_carpi_ulna_r-P1" pos="0.00219 -0.2774 -0.0388"></site>
+                    <site name="palmaris_longus_r-P1" pos="0.00457 -0.27519 -0.03865"></site>
+                    <site name="flex_dig_sup_lat_r-P1" pos="0.00421 -0.27598 -0.03864"></site>
+                    <site name="flex_dig_sup_ring_r-P1" pos="0.00479 -0.2788 -0.03731"></site>
+                    <site name="ext_dig_lat_r-P1" pos="-0.0004 -0.28831 0.0187"></site>
+                    <site name="ext_dig_ring_r-P1" pos="-0.00156 -0.28936 0.01782"></site>
+                    <site name="ext_dig_mid_r-P1" pos="0.00051 -0.28984 0.01949"></site>
+                    <site name="ext_dig_ind_r-P1" pos="0.00065 -0.28898 0.01869"></site>
+                    <site name="ext_dig_min_r-P1" pos="0.00089 -0.28919 0.01847"></site>
+                    <joint name="shoulder_rotation_r" type="hinge" pos="0 0 0" axis="  0.0048 0.999089   0.0424" limited="true" range=" -1.5708 0.349066"></joint>
+                    <body name="elbow_marker_r" pos="       0        0        0" quat="0.9997386008524859 0.020015259228229956 0.00044540185680951066 0.011041783403355711">
+                    </body>
+                    <body name="ulna_r" pos="  0.0061  -0.2904  -0.0123" quat="1.0 0.0 0.0 0.0">
+                      <inertial pos="   0.004 -0.112109    0.029" mass="0.6075" fullinertia="0.002563 0.000534  0.00278        0        0        0"></inertial>
+                      <geom name="ulna_rFB" type="mesh" mesh="ulna_rFB"></geom>
+                      <site name="anconeus_r-P2" pos="-0.02532 -0.00124 0.006"></site>
+                      <site name="supinator_brevis_r-P3" pos="-0.0136 -0.03384 0.02013"></site>
+                      <site name="brachialis_r-P4" pos="-0.0032 -0.0239 0.0009"></site>
+                      <site name="pronator_teres_r-P2" pos="0.00846 -0.03373 -0.01432"></site>
+                      <site name="pronator_teres_r-P3" pos=" 0.01219 -0.06516 -0.00219"></site>
+                      <site name="pron_quad_r-P2" pos="0.00193 -0.20972 0.03632"></site>
+                      <site name="ext_carp_ulnaris_r-P2" pos="-0.01391 -0.03201 0.02947"></site>
+                      <site name="ext_carp_ulnaris_r-P3" pos="-0.01705 -0.05428 0.02868"></site>
+                      <site name="ext_carp_ulnaris_r-P4" pos="-0.01793 -0.09573 0.03278"></site>
+                      <site name="flex_dig_sup_mid_r-P1" pos="-0.00669 -0.02713 -0.00191"></site>
+                      <site name="flex_dig_sup_ind_r-P1" pos="-0.00676 -0.02819 -0.00137"></site>
+                      <site name="flex_dig_prof_lat_r-P1" pos="-0.00628 -0.03214 0.00254"></site>
+                      <site name="flex_dig_prof_ring_r-P1" pos="-0.00502 -0.03374 0.00273"></site>
+                      <site name="flex_dig_prof_mid_r-P1" pos="-0.00522 -0.03327 0.0021"></site>
+                      <site name="flex_dig_prof_ind_r-P1" pos="-0.00647 -0.03176 0.0028"></site>
+                      <site name="ext_dig_min_r-P2" pos="-0.00977 -0.03907 0.03085"></site>
+                      <site name="ext_dig_min_r-P3" pos="-0.00755 -0.08267 0.03646"></site>
+                      <site name="ext_indicis_r-P1" pos="-0.00394 -0.16652 0.03682"></site>
+                      <site name="ext_indicis_r-P2" pos="0.00171 -0.17469 0.04049"></site>
+                      <site name="ext_poll_long_r-P1" pos="-0.01412 -0.09706 0.02952"></site>
+                      <joint name="elbow_flexion_r" type="hinge" pos="0 0 0" axis="  0.0494   0.0366 0.998108" limited="true" range="       0  2.26893"></joint>
+                      <body name="radius_r" pos="  0.0004 -0.011503     0.02" quat="1.0 0.0 0.0 0.0">
+                        <inertial pos="   0.005 -0.112109     0.01" mass="0.6075" fullinertia="0.002563 0.000534  0.00278        0        0        0"></inertial>
+                        <geom name="radius_rFB" type="mesh" mesh="radius_rFB"></geom>
+                        <site name="supinator_brevis_r-P1" pos="0.00996 -0.06096 0.00075"></site>
+                        <site name="supinator_brevis_r-P2" pos="0.01201 -0.0517 -0.00107"></site>
+                        <site name="brachioradialis_r-P2" pos="0.03577 -0.12742 0.02315"></site>
+                        <site name="brachioradialis_r-P3" pos="0.0419 -0.221 0.0224"></site>
+                        <site name="pronator_teres_r-P5" pos="0.0254 -0.1088 0.0198"></site>
+                        <site name="pron_quad_r-P1" pos="0.03245 -0.19998 0.01962"></site>
+                        <site name="ext_carp_rad_long_r-P2" pos="0.03195 -0.13463 0.02779"></site>
+                        <site name="ext_carp_rad_long_r-P3" pos="0.04243 -0.23684 0.0362"></site>
+                        <site name="ext_carp_rad_brev_r-P2" pos="0.02905 -0.13086 0.02385"></site>
+                        <site name="ext_carp_rad_brev_r-P3" pos="0.03549 -0.22805 0.03937"></site>
+                        <site name="ext_carp_ulnaris_r-P5" pos="-0.01421 -0.22696 0.03481"></site>
+                        <site name="flex_carpi_rad_r-P2" pos="0.0211 -0.21943 0.00127"></site>
+                        <site name="flex_carpi_ulna_r-P3" pos="0.01082 -0.22327 0.00969"></site>
+                        <site name="flex_carpi_ulna_r-P2" pos=" 0.00949  -0.1841   0.0005"></site>
+                        <site name="palmaris_longus_r-P2" pos="0.02531 -0.23915 -0.00276"></site>
+                        <site name="flex_dig_sup_lat_r-P2" pos="0.01377 -0.18718 0.00205"></site>
+                        <site name="flex_dig_sup_ring_r-P2" pos="0.01571 -0.18666 0.00267"></site>
+                        <site name="flex_dig_sup_mid_r-P2" pos="0.01899 -0.18706 0.00424"></site>
+                        <site name="flex_dig_sup_ind_r-P2" pos="0.02145 -0.18623 0.00552"></site>
+                        <site name="flex_dig_prof_lat_r-P2" pos="0.01409 -0.18516 0.00861"></site>
+                        <site name="flex_dig_prof_ring_r-P2" pos="0.0158 -0.18629 0.00803"></site>
+                        <site name="flex_dig_prof_mid_r-P2" pos="0.01906 -0.18644 0.00785"></site>
+                        <site name="flex_dig_prof_ind_r-P2" pos="0.0208 -0.1856 0.00915"></site>
+                        <site name="ext_dig_lat_r-P3" pos="0.00993 -0.22304 0.03618"></site>
+                        <site name="ext_dig_lat_r-P2" pos="  0.0013 -0.03888  0.01405"></site>
+                        <site name="ext_dig_ring_r-P3" pos="0.00882 -0.22366 0.04284"></site>
+                        <site name="ext_dig_ring_r-P2" pos="  0.0026 -0.03991  0.01552"></site>
+                        <site name="ext_dig_mid_r-P3" pos="0.0144 -0.22323 0.04223"></site>
+                        <site name="ext_dig_mid_r-P2" pos=" 0.00316 -0.03948  0.01528"></site>
+                        <site name="ext_dig_ind_r-P3" pos="0.01533 -0.22314 0.04196"></site>
+                        <site name="ext_dig_ind_r-P2" pos=" 0.00228 -0.03918  0.01483"></site>
+                        <site name="ext_dig_min_r-P4" pos="0.00454 -0.22641 0.03678"></site>
+                        <site name="ext_indicis_r-P3" pos="0.01076 -0.22783 0.03664"></site>
+                        <site name="ext_poll_long_r-P2" pos="0.00124 -0.13668 0.0227"></site>
+                        <site name="ext_poll_long_r-P3" pos="0.02702 -0.21872 0.03828"></site>
+                        <site name="ext_poll_long_r-P4" pos="0.03382 -0.22754 0.04607"></site>
+                        <site name="ext_poll_long_r-P5" pos="0.04234 -0.23771 0.04173"></site>
+                        <site name="ext_poll_brev_r-P1" pos="0.01924 -0.14695 0.02114"></site>
+                        <site name="ext_poll_brev_r-P2" pos="0.02276 -0.15857 0.02665"></site>
+                        <site name="ext_poll_brev_r-P3" pos="0.03831 -0.19722 0.03834"></site>
+                        <site name="ext_poll_brev_r-P4" pos="0.05235 -0.23611 0.02699"></site>
+                        <site name="flex_poll_long_r-P1" pos="0.00971 -0.09458 0.01769"></site>
+                        <site name="flex_poll_long_r-P2" pos="0.01658 -0.13525 0.01915"></site>
+                        <site name="flex_poll_long_r-P3" pos="0.01869 -0.17932 0.01988"></site>
+                        <site name="flex_poll_long_r-P4" pos="0.038 -0.23171 0.0158"></site>
+                        <site name="abd_poll_long_r-P1" pos="0.01154 -0.09477 0.01681"></site>
+                        <site name="abd_poll_long_r-P2" pos="0.0303 -0.1397 0.03507"></site>
+                        <site name="abd_poll_long_r-P3" pos="0.03993 -0.16072 0.034"></site>
+                        <site name="abd_poll_long_r-P4" pos="0.04397 -0.17845 0.03134"></site>
+                        <site name="abd_poll_long_r-P5" pos="0.05505 -0.23084 0.02368"></site>
+                        <joint name="pro_supination_r" type="hinge" pos="0 0 0" axis="-0.017161 0.992666 -0.119668" limited="true" range=" -2.0944   2.0944"></joint>
+                        <body name="wrist_marker_r" pos=" -0.0004 0.011503    -0.02" quat="0.7061377159181147 -0.09841024344790397 0.7002252665996341 -0.03700710955942438">
+                        </body>
+                        <body name="workaround_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+                          <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                          <joint name="wrist_deviation_r" type="hinge" pos="0 0 0" axis="       0        1        0" limited="true" range="-0.436332 0.610865"></joint>
+                          <joint name="wrist_flexion_r" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-1.22173  1.22173"></joint>
+                        </body>
+                        <body name="wrist_prox_r" pos="   0.018   -0.242    0.025" quat="1.0 0.0 0.0 0.0">
+                          <inertial pos="       0        0        0" mass="0.003" fullinertia="1.0001e-05 1.0001e-05 1.0001e-05        0        0        0"></inertial>
+                          <geom name="lunate_rFB" type="mesh" mesh="lunate_rFB"></geom>
+                          <geom name="scaphoid_rFB" type="mesh" mesh="scaphoid_rFB"></geom>
+                          <geom name="pisiform_rFB" type="mesh" mesh="pisiform_rFB"></geom>
+                          <geom name="triquetral_rFB" type="mesh" mesh="triquetral_rFB"></geom>
+                          <joint name="radius_wrist_prox_r_r3" type="hinge" pos="0 0 0" axis="0.956427 -0.252207 0.147104" limited="false" range="-99999.9  99999.9"></joint>
+                          <joint name="radius_wrist_prox_r_r1" type="hinge" pos="0 0 0" axis="-0.819064 -0.135611 -0.557444" limited="false" range="-99999.9  99999.9"></joint>
+                          <body name="wrist_distal_r" pos="0.003992 -0.015054 0.002327" quat="1.0 0.0 0.0 0.0">
+                            <inertial pos="       0        0        0" mass="0.004" fullinertia="1.0001e-05 1.0001e-05 1.0001e-05        0        0        0"></inertial>
+                            <geom name="capitate_rFB" type="mesh" mesh="capitate_rFB"></geom>
+                            <geom name="trapezoid_rFB" type="mesh" mesh="trapezoid_rFB"></geom>
+                            <geom name="hamate_rFB" type="mesh" mesh="hamate_rFB"></geom>
+                            <site name="palmaris_longus_r-P3" pos="0.00917 -0.01898 -0.01754"></site>
+                            <site name="flex_dig_sup_lat_r-P3" pos="-0.00235 -0.01393 -0.01376"></site>
+                            <site name="flex_dig_sup_ring_r-P3" pos="-0.00082 -0.01344 -0.01359"></site>
+                            <site name="flex_dig_sup_mid_r-P3" pos="0.0068 -0.01377 -0.01399"></site>
+                            <site name="flex_dig_sup_ind_r-P3" pos="0.00889 -0.01366 -0.01387"></site>
+                            <site name="flex_dig_prof_lat_r-P3" pos="-0.00088 -0.01027 -0.01188"></site>
+                            <site name="flex_dig_prof_ring_r-P3" pos="0.00106 -0.01177 -0.01184"></site>
+                            <site name="flex_dig_prof_mid_r-P3" pos="0.00335 -0.0128 -0.01144"></site>
+                            <site name="flex_dig_prof_ind_r-P3" pos="0.00896 -0.01168 -0.01212"></site>
+                            <site name="ext_poll_long_r-P6" pos="0.02428 0.00014 0.00608"></site>
+                            <site name="ext_poll_brev_r-P5" pos="0.03123 0.00256 -0.00327"></site>
+                            <site name="flex_poll_long_r-P5" pos=" 0.01869  0.00882 -0.01547"></site>
+                            <site name="flex_poll_long_r-P6" pos="  0.0147 -0.01915  -0.0211"></site>
+                            <site name="abd_poll_long_r-P6" pos=" 0.03385  0.00634 -0.00745"></site>
+                            <joint name="wrist_prox_distal_r_r3" type="hinge" pos="0 0 0" axis="0.997119   0.0107 -0.075101" limited="false" range="-99999.9  99999.9"></joint>
+                            <joint name="wrist_prox_distal_r_r1" type="hinge" pos="0 0 0" axis="0.899136 -0.349053 -0.26404" limited="false" range="-99999.9  99999.9"></joint>
+                            <body name="trapezium_pre_r" pos="   0.017   -0.004    -0.01" quat="0.7180758920612375 0.01755424688552006 0.6284199411355785 0.2985753493507067">
+                              <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                              <body name="trapezium_r" pos="       0        0        0" quat="0.9931589376748873 -0.005470597079766856 -0.10438521064136264 -0.052049254398487205">
+                                <inertial pos="       0        0        0" mass="0.001" fullinertia="   1e-05    1e-05    1e-05        0        0        0"></inertial>
+                                <geom name="trapezium_rFB" type="mesh" mesh="trapezium_rFB"></geom>
+                                <site name="ext_poll_long_r-P7" pos="-0.00885 -0.00409 0.00805"></site>
+                                <body name="thumb_pre_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+                                  <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                                  <joint name="thumb_prox_flexion_r" type="hinge" pos="0 0 0" axis="0.957826 0.287348        0" limited="true" range="-0.785398 0.523599"></joint>
+                                  <body name="thumb_prox_r" pos="       0   -0.009    0.003" quat="1.0 0.0 0.0 0.0">
+                                    <inertial pos=" 0.00784 -0.01472 -0.00602" mass="0.016" fullinertia="1.189e-06 7.11e-07 1.262e-06 4.72e-07 2.51e-07 -4.09e-07"></inertial>
+                                    <geom name="thumbProx_rFB" type="mesh" mesh="thumbProx_rFB"></geom>
+                                    <site name="ext_poll_long_r-P8" pos="-0.00598 -0.00312 0.00631"></site>
+                                    <site name="ext_poll_long_r-P9" pos="-0.00075 -0.03084 0.0082"></site>
+                                    <site name="ext_poll_brev_r-P6" pos="0.00525 -0.00143 0.00518"></site>
+                                    <site name="ext_poll_brev_r-P7" pos="0.00502 -0.032 0.00628"></site>
+                                    <site name="flex_poll_long_r-P7" pos="0.00054 -0.01332 -0.01504"></site>
+                                    <site name="flex_poll_long_r-P8" pos="-0.00074 -0.02257 -0.01008"></site>
+                                    <site name="abd_poll_long_r-P7" pos="0.01095 0.00781 0.00408"></site>
+                                    <site name="abd_poll_long_r-P8" pos="0.00933 -0.00151 0.00306"></site>
+                                    <site name="abd_poll_long_r-P9" pos="0.00561 -0.00996 0.00193"></site>
+                                    <joint name="thumb_prox_abduction_r" type="hinge" pos="0 0 0" axis="       0 0.514496 0.857493" limited="true" range="-0.610865 0.610865"></joint>
+                                    <body name="thumb_mid_r" pos="  0.0005  -0.0355        0" quat="1.0 0.0 0.0 0.0">
+                                      <inertial pos="       0   -0.018   -0.004" mass="0.0079" fullinertia="2.61e-07  1.6e-07 2.93e-07  9.5e-08  3.8e-08 -6.3e-08"></inertial>
+                                      <geom name="thumbMid_rFB" type="mesh" mesh="thumbMid_rFB"></geom>
+                                      <site name="ext_poll_long_r-P10" pos="0.00102 -0.00713 0.00893"></site>
+                                      <site name="ext_poll_long_r-P11" pos="0.00216 -0.03367 0.00448"></site>
+                                      <site name="ext_poll_brev_r-P8" pos="0.00546 -0.0108 0.00354"></site>
+                                      <site name="flex_poll_long_r-P9" pos="-0.00366 -0.01491 -0.01195"></site>
+                                      <site name="flex_poll_long_r-P10" pos="0.00019 -0.02782 -0.00735"></site>
+                                      <joint name="thumb_mid_flexion_r" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-0.174533   1.5708"></joint>
+                                      <body name="thumb_distal_r" pos="   0.001  -0.0315        0" quat="1.0 0.0 0.0 0.0">
+                                        <inertial pos=" -0.0005    -0.01   -0.004" mass="0.0031" fullinertia=" 4.6e-08  3.2e-08    5e-08  1.4e-08    7e-09   -1e-08"></inertial>
+                                        <geom name="thumbDistal_rFB" type="mesh" mesh="thumbDistal_rFB"></geom>
+                                        <site name="ext_poll_long_r-P12" pos="0.00187 -0.0093 0.00012"></site>
+                                        <site name="flex_poll_long_r-P11" pos="-0.00116 -0.01087 -0.00372"></site>
+                                        <joint name="thumb_distal_flexion_r" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-0.174533   1.5708"></joint>
+                                      </body>
+                                    </body>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                            <body name="palm_r" pos="0.000477 -0.039239 0.007377" quat="1.0 0.0 0.0 0.0">
+                              <inertial pos=" -0.0065        0   -0.004" mass="0.33243" fullinertia=" 0.00011    6e-05  0.00015    9e-07   -2e-07  1.2e-05"></inertial>
+                            </body>
+                            <body name="index_pre_r" pos="    0.01   -0.009        0" quat="0.9920879076211379 -0.06484552641235689 0.09046116225062205 0.05808114479315587">
+                              <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                              <body name="index_metacarpal_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+                                <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                                <geom name="indexMetacarpal_rFB" type="mesh" mesh="indexMetacarpal_rFB"></geom>
+                                <site name="ext_carp_rad_long_r-P4" pos="0.00465 -0.01363 0.00522"></site>
+                                <site name="flex_carpi_rad_r-P3" pos="0.00101 -0.00896 -0.00518"></site>
+                                <site name="flex_dig_sup_ind_r-P4" pos="-0.00243 -0.02854 -0.00368"></site>
+                                <site name="flex_dig_sup_ind_r-P5" pos="-0.00199 -0.05267 -0.00823"></site>
+                                <site name="flex_dig_prof_ind_r-P4" pos="-0.0024 -0.022 -0.00051"></site>
+                                <site name="flex_dig_prof_ind_r-P5" pos="-0.00031 -0.05517 -0.00787"></site>
+                                <site name="ext_dig_ind_r-P4" pos="-0.00103 -0.06275 0.01025"></site>
+                                <site name="ext_indicis_r-P4" pos="-0.00958 -0.01376 0.00864"></site>
+                                <site name="ext_indicis_r-P5" pos="-0.00128 -0.06217 0.01019"></site>
+                                <site name="RI2-P1" pos="-0.00245374 -0.0284129 -0.0036657"></site>
+                                <site name="RI2-P2" pos="0.00832493 -0.0494034 -0.00423379"></site>
+                                <site name="LU_RB2-P1" pos="-0.00245374 -0.0284129 -0.0036657"></site>
+                                <site name="LU_RB2-P2" pos="0.00781547 -0.0565164 -0.000215855"></site>
+                                <site name="UI_UB2-P1" pos="-0.00245374 -0.0284129 -0.0036657"></site>
+                                <site name="UI_UB2-P2" pos="-0.00560049 -0.0576625 -0.00303999"></site>
+                                <body name="index_prox_r" pos="       0   -0.058    0.002" quat="1.0 0.0 0.0 0.0">
+                                  <inertial pos="   0.001   -0.025   -0.003" mass="0.0158" fullinertia="1.206e-06 2.82e-07 1.201e-06 1.66e-07 -3.1e-08  1.8e-07"></inertial>
+                                  <geom name="indexProx_rFB" type="mesh" mesh="indexProx_rFB"></geom>
+                                  <site name="flex_dig_sup_ind_r-P6" pos="0.00035 -0.03429 -0.00029"></site>
+                                  <site name="flex_dig_prof_ind_r-P6" pos="0.00192 -0.03615 -0.00166"></site>
+                                  <site name="ext_dig_ind_r-P5" pos="-0.00068 -0.01251 0.00847"></site>
+                                  <site name="ext_dig_ind_r-P6" pos="0.00107 -0.04412 0.0083"></site>
+                                  <site name="ext_indicis_r-P6" pos="-0.00068 -0.01171 0.00782"></site>
+                                  <site name="ext_indicis_r-P7" pos="0.00055 -0.0435 0.00843"></site>
+                                  <site name="RI2-P3" pos="0.0060473 -0.00752303 -0.00126834"></site>
+                                  <site name="LU_RB2-P3" pos="0.00716237 -0.00925795 -0.00141003"></site>
+                                  <site name="LU_RB2-P4" pos="0.00770921 -0.0411385 -0.00157902"></site>
+                                  <site name="UI_UB2-P3" pos="-0.00638159 -0.0153965 0.000682437"></site>
+                                  <site name="UI_UB2-P4" pos="-0.00507717 -0.0403241 0.00294391"></site>
+                                  <joint name="index_prox_abduction_r" type="hinge" pos="0 0 0" axis="       0        0        1" limited="true" range="-0.785398 0.785398"></joint>
+                                  <joint name="index_prox_flexion_r" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-0.785398   1.5708"></joint>
+                                  <body name="index_mid_r" pos="   0.002  -0.0425    0.002" quat="1.0 0.0 0.0 0.0">
+                                    <inertial pos="       0   -0.015   -0.004" mass="0.0049" fullinertia="1.42e-07  3.6e-08 1.43e-07  1.2e-08   -1e-09    5e-09"></inertial>
+                                    <geom name="indexMid_rFB" type="mesh" mesh="indexMid_rFB"></geom>
+                                    <site name="flex_dig_sup_ind_r-P7" pos="0.00031 -0.02084 -0.00328"></site>
+                                    <site name="ext_dig_ind_r-P7" pos="-0.00067 -0.01026 0.00427"></site>
+                                    <site name="ext_dig_ind_r-P8" pos="3e-005 -0.02014 0.00079"></site>
+                                    <site name="ext_indicis_r-P8" pos="-0.00073 -0.00986 0.00448"></site>
+                                    <site name="ext_indicis_r-P9" pos="0.00025 -0.02103 0.00085"></site>
+                                    <site name="LU_RB2-P5" pos="0.000884587 -0.0179396 0.00353122"></site>
+                                    <site name="UI_UB2-P5" pos="-0.00131084 -0.0146506 0.00314683"></site>
+                                    <joint name="index_mid_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   2.0944"></joint>
+                                    <body name="index_distal_r" pos="  0.0005   -0.025   -0.002" quat="1.0 0.0 0.0 0.0">
+                                      <inertial pos="       0    -0.01   -0.003" mass="0.0018" fullinertia=" 2.3e-08    8e-09  2.3e-08    3e-09        0    2e-09"></inertial>
+                                      <geom name="indexDistal_rFB" type="mesh" mesh="indexDistal_rFB"></geom>
+                                      <site name="flex_dig_prof_ind_r-P7" pos="0.0007 -0.00422 -0.0039"></site>
+                                      <site name="ext_dig_ind_r-P9" pos="-0.00041 -0.00411 0.00135"></site>
+                                      <site name="ext_indicis_r-P10" pos="0.00099 -0.01294 0.00063"></site>
+                                      <joint name="index_distal_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   1.5708"></joint>
+                                    </body>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                            <body name="middle_pre_r" pos="       0   -0.008   0.0015" quat="0.9975260660721692 -0.06975381755561116 0.0006087410492109623 0.008705278705239971">
+                              <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                              <geom name="middleMetacarpal_rFB" type="mesh" mesh="middleMetacarpal_rFB"></geom>
+                              <site name="ext_carp_rad_brev_r-P4" pos="0.00492 -0.00439 0.00646"></site>
+                              <site name="palmaris_longus_r-P4" pos="0.00186 -0.02325 0.0002"></site>
+                              <site name="flex_dig_sup_ring_r-P4" pos="-0.0091 -0.0247 -0.00852"></site>
+                              <site name="flex_dig_sup_mid_r-P4" pos="0.00134 -0.02413 -0.00707"></site>
+                              <site name="flex_dig_sup_mid_r-P5" pos="0.00213 -0.05608 -0.00379"></site>
+                              <site name="flex_dig_prof_ring_r-P4" pos="-0.01037 -0.02577 -0.00583"></site>
+                              <site name="flex_dig_prof_mid_r-P4" pos="-0.00123 -0.02454 -0.00598"></site>
+                              <site name="flex_dig_prof_mid_r-P5" pos="-0.00014 -0.05458 -0.0048"></site>
+                              <site name="ext_dig_mid_r-P4" pos="0.00081 -0.05603 0.00578"></site>
+                              <site name="RI3-P1" pos="0.00133223 -0.0240219 -0.00704402"></site>
+                              <site name="RI3-P2" pos="0.00950558 -0.0337963 -0.00368689"></site>
+                              <site name="LU_RB3-P1" pos="0.00133223 -0.0240219 -0.00704402"></site>
+                              <site name="LU_RB3-P2" pos="0.00931186 -0.0568876 -0.013998"></site>
+                              <site name="UI_UB3-P1" pos="0.00133223 -0.0240219 -0.00704402"></site>
+                              <site name="UI_UB3-P2" pos="-0.00823712 -0.0576731 -0.00623001"></site>
+                              <site name="RI4-P1" pos="-0.00906533 -0.0245937 -0.00848856"></site>
+                              <site name="LU_RB4-P1" pos="-0.00906533 -0.0245937 -0.00848856"></site>
+                              <site name="UI_UB4-P1" pos="-0.00906533 -0.0245937 -0.00848856"></site>
+                              <site name="RI5-P1" pos="-0.00906533 -0.0245937 -0.00848856"></site>
+                              <site name="LU_RB5-P1" pos="-0.00872081 -0.00485599 -0.00571418"></site>
+                              <site name="UI_UB5-P1" pos="-0.0196711 -0.00397115 -0.0106494"></site>
+                              <body name="middle_prox_r" pos="       0   -0.058   -0.001" quat="1.0 0.0 0.0 0.0">
+                                <inertial pos="   0.001   -0.026   -0.004" mass="0.0193" fullinertia="1.762e-06 3.08e-07 1.755e-06  4.3e-08   -3e-09 1.09e-07"></inertial>
+                                <geom name="middleProx_rFB" type="mesh" mesh="middleProx_rFB"></geom>
+                                <site name="flex_dig_sup_mid_r-P6" pos="0.00147 -0.04328 -0.00205"></site>
+                                <site name="flex_dig_prof_mid_r-P6" pos="-3e-005 -0.04332 -0.0033"></site>
+                                <site name="ext_dig_mid_r-P5" pos="0.00074 -0.04351 0.00385"></site>
+                                <site name="RI3-P3" pos="0.00723441 -0.0117749 -0.00245174"></site>
+                                <site name="LU_RB3-P3" pos="0.00604182 -0.0110683 -0.00669837"></site>
+                                <site name="LU_RB3-P4" pos="0.0109403 -0.0366305 0.00201894"></site>
+                                <site name="UI_UB3-P3" pos="-0.00799979 -0.0112322 -0.00244405"></site>
+                                <site name="UI_UB3-P4" pos="-0.00477625 -0.0368046 0.00672104"></site>
+                                <joint name="middle_prox_abduction_r" type="hinge" pos="0 0 0" axis="       0        0        1" limited="true" range="-0.436332 0.436332"></joint>
+                                <joint name="middle_prox_flexion_r" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-0.785398   1.5708"></joint>
+                                <body name="middle_mid_r" pos="   0.001   -0.045   -0.001" quat="1.0 0.0 0.0 0.0">
+                                  <inertial pos="   0.001   -0.017   -0.004" mass="0.00642" fullinertia="2.62e-07  5.1e-08 2.62e-07    1e-08        0    9e-09"></inertial>
+                                  <geom name="middleMid_rFB" type="mesh" mesh="middleMid_rFB"></geom>
+                                  <site name="flex_dig_sup_mid_r-P7" pos="0.00074 -0.02717 -0.00333"></site>
+                                  <site name="LU_RB3-P5" pos="0.00694685 -0.00960467 0.00457196"></site>
+                                  <site name="UI_UB3-P5" pos="-0.00681397 -0.00944576 0.00299324"></site>
+                                  <joint name="middle_mid_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   2.0944"></joint>
+                                  <body name="middle_distal_r" pos="   0.001  -0.0295   -0.002" quat="1.0 0.0 0.0 0.0">
+                                    <inertial pos="  0.0005    -0.01   -0.004" mass="0.00252" fullinertia="   4e-08  1.3e-08    4e-08    2e-09        0    3e-09"></inertial>
+                                    <geom name="middleDistal_rFB" type="mesh" mesh="middleDistal_rFB"></geom>
+                                    <site name="flex_dig_prof_mid_r-P7" pos="-0.00028 -0.00366 -0.00352"></site>
+                                    <site name="ext_dig_mid_r-P6" pos="0.00021 -0.01047 -0.0006"></site>
+                                    <joint name="middle_distal_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   1.5708"></joint>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                            <body name="ring_pre_r" pos="   -0.01   -0.009   0.0012" quat="0.9952507141929041 -0.05905635378316079 -0.07119667630245587 -0.030321547781009966">
+                              <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                              <body name="ring_metacarpal_r" pos="       0        0        0" quat="0.9993527732787034 0.034898167836717904 0.00030455169685173736 -0.008721219528759724">
+                                <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                                <geom name="ringMetacarpal_rFB" type="mesh" mesh="ringMetacarpal_rFB"></geom>
+                                <site name="flex_dig_sup_lat_r-P4" pos="-0.00476 -0.02294 -0.0102"></site>
+                                <site name="flex_dig_sup_ring_r-P5" pos="-0.00186 -0.0548 -0.00747"></site>
+                                <site name="flex_dig_prof_lat_r-P4" pos="-0.00779 -0.02305 -0.00375"></site>
+                                <site name="flex_dig_prof_ring_r-P5" pos="-0.00164 -0.0545 -0.00589"></site>
+                                <site name="ext_dig_ring_r-P4" pos="-0.00047 -0.05534 0.00526"></site>
+                                <site name="RI4-P2" pos="0.00923078 -0.0452236 -0.00126303"></site>
+                                <site name="LU_RB4-P2" pos="0.00584309 -0.036175 -0.0068434"></site>
+                                <site name="UI_UB4-P2" pos="-0.00355235 -0.0537615 -0.00361815"></site>
+                                <body name="ring_prox_r" pos="       0   -0.055        0" quat="1.0 0.0 0.0 0.0">
+                                  <inertial pos="       0   -0.024   -0.004" mass="0.01374" fullinertia=" 9.8e-07 1.81e-07 9.89e-07 -8.6e-08        0   -2e-09"></inertial>
+                                  <geom name="ringProx_rFB" type="mesh" mesh="ringProx_rFB"></geom>
+                                  <site name="flex_dig_sup_ring_r-P6" pos="0.00051 -0.03981 -0.00306"></site>
+                                  <site name="flex_dig_prof_ring_r-P6" pos="-0.00072 -0.04045 -0.00263"></site>
+                                  <site name="ext_dig_ring_r-P5" pos="-0.00248 -0.03947 0.0026"></site>
+                                  <site name="RI4-P3" pos="0.0047493 -0.0236496 -0.00278649"></site>
+                                  <site name="LU_RB4-P3" pos="0.00697882 -0.0101839 0.00270741"></site>
+                                  <site name="LU_RB4-P4" pos="0.00557559 -0.0301234 0.00262188"></site>
+                                  <site name="UI_UB4-P3" pos="-0.00412422 -0.0174698 0.00801992"></site>
+                                  <site name="UI_UB4-P4" pos="-0.00384281 -0.0404577 0.00341834"></site>
+                                  <joint name="ring_prox_abduction_r" type="hinge" pos="0 0 0" axis="       0        0        1" limited="true" range="-0.436332 0.436332"></joint>
+                                  <joint name="ring_prox_flexion_r" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-0.785398   1.5708"></joint>
+                                  <body name="ring_mid_r" pos="       0    -0.04   -0.001" quat="1.0 0.0 0.0 0.0">
+                                    <inertial pos="  -0.001   -0.015   -0.004" mass="0.00568" fullinertia="1.81e-07  4.6e-08 1.81e-07   -8e-09        0   -1e-09"></inertial>
+                                    <geom name="ringMid_rFB" type="mesh" mesh="ringMid_rFB"></geom>
+                                    <site name="flex_dig_sup_ring_r-P7" pos="0.00087 -0.02561 -0.00273"></site>
+                                    <site name="LU_RB4-P5" pos="0.00208637 -0.0151049 0.00272632"></site>
+                                    <site name="UI_UB4-P5" pos="-0.0009425 -0.0162267 0.000659371"></site>
+                                    <joint name="ring_mid_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   2.0944"></joint>
+                                    <body name="ring_distal_r" pos="  -0.001  -0.0245   -0.002" quat="1.0 0.0 0.0 0.0">
+                                      <inertial pos="       0    -0.01   -0.003" mass="0.0029" fullinertia=" 4.9e-08  1.9e-08  4.8e-08   -5e-09    1e-09    7e-09"></inertial>
+                                      <geom name="ringDistal_rFB" type="mesh" mesh="ringDistal_rFB"></geom>
+                                      <site name="flex_dig_prof_ring_r-P7" pos="0.00021 -0.00738 -0.00232"></site>
+                                      <site name="ext_dig_ring_r-P6" pos="-0.00135 -0.00546 0.00151"></site>
+                                      <joint name="ring_distal_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   1.5708"></joint>
+                                    </body>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                            <body name="pinky_pre_r" pos="  -0.017   -0.008   -0.004" quat="0.9874766105112366 -0.06989254123486204 -0.11801718719368662 -0.07795460153103759">
+                              <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                              <body name="pinky_metacarpal_r" pos="       0        0        0" quat="0.996879374175804 0.07845610824564765 0.0006846760840394521 -0.008699634501794869">
+                                <inertial pos="       0        0        0" mass="1e-06" fullinertia="   1e-08    1e-08    1e-08        0        0        0"></inertial>
+                                <geom name="pinkyMetacarpal_rFB" type="mesh" mesh="pinkyMetacarpal_rFB"></geom>
+                                <site name="ext_carp_ulnaris_r-P6" pos="-0.00368 -0.00667 0.00398"></site>
+                                <site name="flex_carpi_ulna_r-P4" pos="-0.00258 -0.01017 -0.0026"></site>
+                                <site name="flex_dig_sup_lat_r-P5" pos="0.00028 -0.04687 -0.00634"></site>
+                                <site name="flex_dig_prof_lat_r-P5" pos="-0.0012 -0.0462 -0.00546"></site>
+                                <site name="ext_dig_lat_r-P4" pos="-0.00114 -0.04658 0.00643"></site>
+                                <site name="ext_dig_min_r-P5" pos="-0.0012 -0.00255 0.00836"></site>
+                                <site name="ext_dig_min_r-P6" pos="-0.00213 -0.04605 0.00531"></site>
+                                <site name="RI5-P2" pos="0.00601442 -0.0423236 0.0050003"></site>
+                                <site name="LU_RB5-P2" pos="0.00245829 -0.0265984 -0.000768598"></site>
+                                <site name="UI_UB5-P2" pos="-0.00656901 -0.0575728 -0.000621742"></site>
+                                <body name="pinky_prox_r" pos="       0   -0.048        0" quat="1.0 0.0 0.0 0.0">
+                                  <inertial pos="       0   -0.022   -0.004" mass="0.01106" fullinertia="6.44e-07 1.33e-07 6.45e-07 -4.9e-08   -4e-09 -4.7e-08"></inertial>
+                                  <geom name="pinkyProx_rFB" type="mesh" mesh="pinkyProx_rFB"></geom>
+                                  <site name="flex_dig_sup_lat_r-P6" pos="0.00158 -0.03659 -0.00216"></site>
+                                  <site name="flex_dig_prof_lat_r-P6" pos="-0.0006 -0.0359 -0.00353"></site>
+                                  <site name="ext_dig_lat_r-P5" pos="-0.00175 -0.03423 0.00191"></site>
+                                  <site name="ext_dig_min_r-P7" pos="0.0001 -0.0333 0.00245"></site>
+                                  <site name="RI5-P3" pos="0.00426277 -0.0174 0.000245054"></site>
+                                  <site name="LU_RB5-P3" pos="0.00775013 -0.00883719 0.0009891"></site>
+                                  <site name="LU_RB5-P4" pos="0.00151065 -0.033568 0.00206306"></site>
+                                  <site name="UI_UB5-P3" pos="-0.00527975 -0.0162958 0.000709753"></site>
+                                  <site name="UI_UB5-P4" pos="-0.00203258 -0.0350964 0.00259844"></site>
+                                  <joint name="pinky_prox_abduction_r" type="hinge" pos="0 0 0" axis="       0        0        1" limited="true" range="-0.785398 0.785398"></joint>
+                                  <joint name="pinky_prox_flexion_r" type="hinge" pos="0 0 0" axis="       1        0        0" limited="true" range="-0.785398   1.5708"></joint>
+                                  <body name="pinky_mid_r" pos="       0   -0.036  -0.0005" quat="1.0 0.0 0.0 0.0">
+                                    <inertial pos="       0   -0.013   -0.004" mass="0.00372" fullinertia=" 8.5e-08  2.5e-08  8.5e-08   -8e-09   -1e-09   -6e-09"></inertial>
+                                    <geom name="pinkyMid_rFB" type="mesh" mesh="pinkyMid_rFB"></geom>
+                                    <site name="flex_dig_sup_lat_r-P7" pos="-0.00049 -0.02071 -0.00305"></site>
+                                    <site name="LU_RB5-P5" pos="0.000593473 -0.018672 0.000100865"></site>
+                                    <site name="UI_UB5-P5" pos="-0.00217527 -0.0194664 0.00188797"></site>
+                                    <joint name="pinky_mid_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   2.0944"></joint>
+                                    <body name="pinky_distal_r" pos="       0   -0.021   -0.002" quat="1.0 0.0 0.0 0.0">
+                                      <inertial pos="       0   -0.009   -0.003" mass="0.00222" fullinertia=" 2.8e-08  1.2e-08  2.8e-08   -3e-09        0   -2e-09"></inertial>
+                                      <geom name="pinkyDistal_rFB" type="mesh" mesh="pinkyDistal_rFB"></geom>
+                                      <site name="flex_dig_prof_lat_r-P7" pos="-0.00034 -0.00485 -0.00163"></site>
+                                      <site name="ext_dig_lat_r-P6" pos="-0.0015 -0.00018 0.00169"></site>
+                                      <site name="ext_dig_min_r-P8" pos="-0.0018 -0.00427 0.0011"></site>
+                                      <joint name="pinky_distal_flexion_r" type="hinge" pos="0 0 0" axis="0.980581        0 0.196116" limited="true" range="-0.174533   1.5708"></joint>
+                                    </body>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                    <body name="DELT2pt2a_r" pos="       0        0        0" quat="1.0 0.0 0.0 0.0">
+                      <inertial pos="       0        0        0" mass="1e-07" fullinertia="   1e-07    1e-07    1e-07        0        0        0"></inertial>
+                      <joint name="DELT2pt2a_r_tz" type="slide" pos="0 0 0" axis="       0        0        1" limited="false" range="-99999.9  99999.9"></joint>
+                      <joint name="DELT2pt2a_r_ty" type="slide" pos="0 0 0" axis="       0        1        0" limited="false" range="-99999.9  99999.9"></joint>
+                      <joint name="DELT2pt2a_r_tx" type="slide" pos="0 0 0" axis="       1        0        0" limited="false" range="-99999.9  99999.9"></joint>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+    <camera name="main" pos="       0    -1.75      1.5" euler="1.57 0 0"></camera>
+    <camera name="origin_body" mode="targetbody" target="torso"></camera>
+  </worldbody>
+  <asset>
+    <mesh name="ribcageFB" file="Geometry/ribcageFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic1FB" file="Geometry/thoracic1FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic2FB" file="Geometry/thoracic2FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic3FB" file="Geometry/thoracic3FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic4FB" file="Geometry/thoracic4FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic5FB" file="Geometry/thoracic5FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic6FB" file="Geometry/thoracic6FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic7FB" file="Geometry/thoracic7FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic8FB" file="Geometry/thoracic8FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic9FB" file="Geometry/thoracic9FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic10FB" file="Geometry/thoracic10FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic11FB" file="Geometry/thoracic11FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thoracic12FB" file="Geometry/thoracic12FB.stl" scale="       1        1        1"></mesh>
+    <mesh name="clavicle_rFB" file="Geometry/clavicle_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="scapula_rFB" file="Geometry/scapula_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="humerus_rFB" file="Geometry/humerus_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="ulna_rFB" file="Geometry/ulna_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="radius_rFB" file="Geometry/radius_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="lunate_rFB" file="Geometry/lunate_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="scaphoid_rFB" file="Geometry/scaphoid_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="pisiform_rFB" file="Geometry/pisiform_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="triquetral_rFB" file="Geometry/triquetral_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="capitate_rFB" file="Geometry/capitate_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="trapezoid_rFB" file="Geometry/trapezoid_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="hamate_rFB" file="Geometry/hamate_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="trapezium_rFB" file="Geometry/trapezium_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thumbProx_rFB" file="Geometry/thumbProx_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thumbMid_rFB" file="Geometry/thumbMid_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="thumbDistal_rFB" file="Geometry/thumbDistal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="indexMetacarpal_rFB" file="Geometry/indexMetacarpal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="indexProx_rFB" file="Geometry/indexProx_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="indexMid_rFB" file="Geometry/indexMid_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="indexDistal_rFB" file="Geometry/indexDistal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="middleMetacarpal_rFB" file="Geometry/middleMetacarpal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="middleProx_rFB" file="Geometry/middleProx_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="middleMid_rFB" file="Geometry/middleMid_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="middleDistal_rFB" file="Geometry/middleDistal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="ringMetacarpal_rFB" file="Geometry/ringMetacarpal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="ringProx_rFB" file="Geometry/ringProx_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="ringMid_rFB" file="Geometry/ringMid_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="ringDistal_rFB" file="Geometry/ringDistal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="pinkyMetacarpal_rFB" file="Geometry/pinkyMetacarpal_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="pinkyProx_rFB" file="Geometry/pinkyProx_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="pinkyMid_rFB" file="Geometry/pinkyMid_rFB.stl" scale="       1        1        1"></mesh>
+    <mesh name="pinkyDistal_rFB" file="Geometry/pinkyDistal_rFB.stl" scale="       1        1        1"></mesh>
+    <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="100" height="100"></texture>
+    <texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01"></texture>
+    <material name="MatPlane" reflectance="0.5" texture="texplane" texrepeat="1 1" texuniform="true"></material>
+    <material name="geom" texture="texgeom" texuniform="true"></material>
+  </asset>
+  <tendon>
+    <spatial name="anconeus_r_tendon">
+      <site site="anconeus_r-P1"></site>
+      <site site="anconeus_r-P2"></site>
+    </spatial>
+    <spatial name="supinator_brevis_r_tendon">
+      <site site="supinator_brevis_r-P1"></site>
+      <site site="supinator_brevis_r-P2"></site>
+      <site site="supinator_brevis_r-P3"></site>
+    </spatial>
+    <spatial name="brachialis_r_tendon">
+      <site site="brachialis_r-P1"></site>
+      <site site="brachialis_r-P4"></site>
+    </spatial>
+    <spatial name="brachioradialis_r_tendon">
+      <site site="brachioradialis_r-P1"></site>
+      <site site="brachioradialis_r-P2"></site>
+      <site site="brachioradialis_r-P3"></site>
+    </spatial>
+    <spatial name="pronator_teres_r_tendon">
+      <site site="pronator_teres_r-P1"></site>
+      <site site="pronator_teres_r-P2"></site>
+      <site site="pronator_teres_r-P3"></site>
+      <site site="pronator_teres_r-P5"></site>
+    </spatial>
+    <spatial name="pron_quad_r_tendon">
+      <site site="pron_quad_r-P1"></site>
+      <site site="pron_quad_r-P2"></site>
+    </spatial>
+    <spatial name="ext_carp_rad_long_r_tendon">
+      <site site="ext_carp_rad_long_r-P1"></site>
+      <site site="ext_carp_rad_long_r-P2"></site>
+      <site site="ext_carp_rad_long_r-P3"></site>
+      <site site="ext_carp_rad_long_r-P4"></site>
+    </spatial>
+    <spatial name="ext_carp_rad_brev_r_tendon">
+      <site site="ext_carp_rad_brev_r-P1"></site>
+      <site site="ext_carp_rad_brev_r-P2"></site>
+      <site site="ext_carp_rad_brev_r-P3"></site>
+      <site site="ext_carp_rad_brev_r-P4"></site>
+    </spatial>
+    <spatial name="ext_carp_ulnaris_r_tendon">
+      <site site="ext_carp_ulnaris_r-P1"></site>
+      <site site="ext_carp_ulnaris_r-P2"></site>
+      <site site="ext_carp_ulnaris_r-P3"></site>
+      <site site="ext_carp_ulnaris_r-P4"></site>
+      <site site="ext_carp_ulnaris_r-P5"></site>
+      <site site="ext_carp_ulnaris_r-P6"></site>
+    </spatial>
+    <spatial name="flex_carpi_rad_r_tendon">
+      <site site="flex_carpi_rad_r-P1"></site>
+      <site site="flex_carpi_rad_r-P2"></site>
+      <site site="flex_carpi_rad_r-P3"></site>
+    </spatial>
+    <spatial name="flex_carpi_ulna_r_tendon">
+      <site site="flex_carpi_ulna_r-P1"></site>
+      <site site="flex_carpi_ulna_r-P2"></site>
+      <site site="flex_carpi_ulna_r-P3"></site>
+      <site site="flex_carpi_ulna_r-P4"></site>
+    </spatial>
+    <spatial name="palmaris_longus_r_tendon">
+      <site site="palmaris_longus_r-P1"></site>
+      <site site="palmaris_longus_r-P2"></site>
+      <site site="palmaris_longus_r-P3"></site>
+      <site site="palmaris_longus_r-P4"></site>
+    </spatial>
+    <spatial name="flex_dig_sup_lat_r_tendon">
+      <site site="flex_dig_sup_lat_r-P1"></site>
+      <site site="flex_dig_sup_lat_r-P2"></site>
+      <site site="flex_dig_sup_lat_r-P3"></site>
+      <site site="flex_dig_sup_lat_r-P4"></site>
+      <site site="flex_dig_sup_lat_r-P5"></site>
+      <site site="flex_dig_sup_lat_r-P6"></site>
+      <site site="flex_dig_sup_lat_r-P7"></site>
+    </spatial>
+    <spatial name="flex_dig_sup_ring_r_tendon">
+      <site site="flex_dig_sup_ring_r-P1"></site>
+      <site site="flex_dig_sup_ring_r-P2"></site>
+      <site site="flex_dig_sup_ring_r-P3"></site>
+      <site site="flex_dig_sup_ring_r-P4"></site>
+      <site site="flex_dig_sup_ring_r-P5"></site>
+      <site site="flex_dig_sup_ring_r-P6"></site>
+      <site site="flex_dig_sup_ring_r-P7"></site>
+    </spatial>
+    <spatial name="flex_dig_sup_mid_r_tendon">
+      <site site="flex_dig_sup_mid_r-P1"></site>
+      <site site="flex_dig_sup_mid_r-P2"></site>
+      <site site="flex_dig_sup_mid_r-P3"></site>
+      <site site="flex_dig_sup_mid_r-P4"></site>
+      <site site="flex_dig_sup_mid_r-P5"></site>
+      <site site="flex_dig_sup_mid_r-P6"></site>
+      <site site="flex_dig_sup_mid_r-P7"></site>
+    </spatial>
+    <spatial name="flex_dig_sup_ind_r_tendon">
+      <site site="flex_dig_sup_ind_r-P1"></site>
+      <site site="flex_dig_sup_ind_r-P2"></site>
+      <site site="flex_dig_sup_ind_r-P3"></site>
+      <site site="flex_dig_sup_ind_r-P4"></site>
+      <site site="flex_dig_sup_ind_r-P5"></site>
+      <site site="flex_dig_sup_ind_r-P6"></site>
+      <site site="flex_dig_sup_ind_r-P7"></site>
+    </spatial>
+    <spatial name="flex_dig_prof_lat_r_tendon">
+      <site site="flex_dig_prof_lat_r-P1"></site>
+      <site site="flex_dig_prof_lat_r-P2"></site>
+      <site site="flex_dig_prof_lat_r-P3"></site>
+      <site site="flex_dig_prof_lat_r-P4"></site>
+      <site site="flex_dig_prof_lat_r-P5"></site>
+      <site site="flex_dig_prof_lat_r-P6"></site>
+      <site site="flex_dig_prof_lat_r-P7"></site>
+    </spatial>
+    <spatial name="flex_dig_prof_ring_r_tendon">
+      <site site="flex_dig_prof_ring_r-P1"></site>
+      <site site="flex_dig_prof_ring_r-P2"></site>
+      <site site="flex_dig_prof_ring_r-P3"></site>
+      <site site="flex_dig_prof_ring_r-P4"></site>
+      <site site="flex_dig_prof_ring_r-P5"></site>
+      <site site="flex_dig_prof_ring_r-P6"></site>
+      <site site="flex_dig_prof_ring_r-P7"></site>
+    </spatial>
+    <spatial name="flex_dig_prof_mid_r_tendon">
+      <site site="flex_dig_prof_mid_r-P1"></site>
+      <site site="flex_dig_prof_mid_r-P2"></site>
+      <site site="flex_dig_prof_mid_r-P3"></site>
+      <site site="flex_dig_prof_mid_r-P4"></site>
+      <site site="flex_dig_prof_mid_r-P5"></site>
+      <site site="flex_dig_prof_mid_r-P6"></site>
+      <site site="flex_dig_prof_mid_r-P7"></site>
+    </spatial>
+    <spatial name="flex_dig_prof_ind_r_tendon">
+      <site site="flex_dig_prof_ind_r-P1"></site>
+      <site site="flex_dig_prof_ind_r-P2"></site>
+      <site site="flex_dig_prof_ind_r-P3"></site>
+      <site site="flex_dig_prof_ind_r-P4"></site>
+      <site site="flex_dig_prof_ind_r-P5"></site>
+      <site site="flex_dig_prof_ind_r-P6"></site>
+      <site site="flex_dig_prof_ind_r-P7"></site>
+    </spatial>
+    <spatial name="ext_dig_lat_r_tendon">
+      <site site="ext_dig_lat_r-P1"></site>
+      <site site="ext_dig_lat_r-P2"></site>
+      <site site="ext_dig_lat_r-P3"></site>
+      <site site="ext_dig_lat_r-P4"></site>
+      <site site="ext_dig_lat_r-P5"></site>
+      <site site="ext_dig_lat_r-P6"></site>
+    </spatial>
+    <spatial name="ext_dig_ring_r_tendon">
+      <site site="ext_dig_ring_r-P1"></site>
+      <site site="ext_dig_ring_r-P2"></site>
+      <site site="ext_dig_ring_r-P3"></site>
+      <site site="ext_dig_ring_r-P4"></site>
+      <site site="ext_dig_ring_r-P5"></site>
+      <site site="ext_dig_ring_r-P6"></site>
+    </spatial>
+    <spatial name="ext_dig_mid_r_tendon">
+      <site site="ext_dig_mid_r-P1"></site>
+      <site site="ext_dig_mid_r-P2"></site>
+      <site site="ext_dig_mid_r-P3"></site>
+      <site site="ext_dig_mid_r-P4"></site>
+      <site site="ext_dig_mid_r-P5"></site>
+      <site site="ext_dig_mid_r-P6"></site>
+    </spatial>
+    <spatial name="ext_dig_ind_r_tendon">
+      <site site="ext_dig_ind_r-P1"></site>
+      <site site="ext_dig_ind_r-P2"></site>
+      <site site="ext_dig_ind_r-P3"></site>
+      <site site="ext_dig_ind_r-P4"></site>
+      <site site="ext_dig_ind_r-P5"></site>
+      <site site="ext_dig_ind_r-P6"></site>
+      <site site="ext_dig_ind_r-P7"></site>
+      <site site="ext_dig_ind_r-P8"></site>
+      <site site="ext_dig_ind_r-P9"></site>
+    </spatial>
+    <spatial name="ext_dig_min_r_tendon">
+      <site site="ext_dig_min_r-P1"></site>
+      <site site="ext_dig_min_r-P2"></site>
+      <site site="ext_dig_min_r-P3"></site>
+      <site site="ext_dig_min_r-P4"></site>
+      <site site="ext_dig_min_r-P5"></site>
+      <site site="ext_dig_min_r-P6"></site>
+      <site site="ext_dig_min_r-P7"></site>
+      <site site="ext_dig_min_r-P8"></site>
+    </spatial>
+    <spatial name="ext_indicis_r_tendon">
+      <site site="ext_indicis_r-P1"></site>
+      <site site="ext_indicis_r-P2"></site>
+      <site site="ext_indicis_r-P3"></site>
+      <site site="ext_indicis_r-P4"></site>
+      <site site="ext_indicis_r-P5"></site>
+      <site site="ext_indicis_r-P6"></site>
+      <site site="ext_indicis_r-P7"></site>
+      <site site="ext_indicis_r-P8"></site>
+      <site site="ext_indicis_r-P9"></site>
+      <site site="ext_indicis_r-P10"></site>
+    </spatial>
+    <spatial name="ext_poll_long_r_tendon">
+      <site site="ext_poll_long_r-P1"></site>
+      <site site="ext_poll_long_r-P2"></site>
+      <site site="ext_poll_long_r-P3"></site>
+      <site site="ext_poll_long_r-P4"></site>
+      <site site="ext_poll_long_r-P5"></site>
+      <site site="ext_poll_long_r-P6"></site>
+      <site site="ext_poll_long_r-P7"></site>
+      <site site="ext_poll_long_r-P8"></site>
+      <site site="ext_poll_long_r-P9"></site>
+      <site site="ext_poll_long_r-P10"></site>
+      <site site="ext_poll_long_r-P11"></site>
+      <site site="ext_poll_long_r-P12"></site>
+    </spatial>
+    <spatial name="ext_poll_brev_r_tendon">
+      <site site="ext_poll_brev_r-P1"></site>
+      <site site="ext_poll_brev_r-P2"></site>
+      <site site="ext_poll_brev_r-P3"></site>
+      <site site="ext_poll_brev_r-P4"></site>
+      <site site="ext_poll_brev_r-P5"></site>
+      <site site="ext_poll_brev_r-P6"></site>
+      <site site="ext_poll_brev_r-P7"></site>
+      <site site="ext_poll_brev_r-P8"></site>
+    </spatial>
+    <spatial name="flex_poll_long_r_tendon">
+      <site site="flex_poll_long_r-P1"></site>
+      <site site="flex_poll_long_r-P2"></site>
+      <site site="flex_poll_long_r-P3"></site>
+      <site site="flex_poll_long_r-P4"></site>
+      <site site="flex_poll_long_r-P5"></site>
+      <site site="flex_poll_long_r-P6"></site>
+      <site site="flex_poll_long_r-P7"></site>
+      <site site="flex_poll_long_r-P8"></site>
+      <site site="flex_poll_long_r-P9"></site>
+      <site site="flex_poll_long_r-P10"></site>
+      <site site="flex_poll_long_r-P11"></site>
+    </spatial>
+    <spatial name="abd_poll_long_r_tendon">
+      <site site="abd_poll_long_r-P1"></site>
+      <site site="abd_poll_long_r-P2"></site>
+      <site site="abd_poll_long_r-P3"></site>
+      <site site="abd_poll_long_r-P4"></site>
+      <site site="abd_poll_long_r-P5"></site>
+      <site site="abd_poll_long_r-P6"></site>
+      <site site="abd_poll_long_r-P7"></site>
+      <site site="abd_poll_long_r-P8"></site>
+      <site site="abd_poll_long_r-P9"></site>
+    </spatial>
+    <spatial name="RI2_tendon">
+      <site site="RI2-P1"></site>
+      <site site="RI2-P2"></site>
+      <site site="RI2-P3"></site>
+    </spatial>
+    <spatial name="LU_RB2_tendon">
+      <site site="LU_RB2-P1"></site>
+      <site site="LU_RB2-P2"></site>
+      <site site="LU_RB2-P3"></site>
+      <site site="LU_RB2-P4"></site>
+      <site site="LU_RB2-P5"></site>
+    </spatial>
+    <spatial name="UI_UB2_tendon">
+      <site site="UI_UB2-P1"></site>
+      <site site="UI_UB2-P2"></site>
+      <site site="UI_UB2-P3"></site>
+      <site site="UI_UB2-P4"></site>
+      <site site="UI_UB2-P5"></site>
+    </spatial>
+    <spatial name="RI3_tendon">
+      <site site="RI3-P1"></site>
+      <site site="RI3-P2"></site>
+      <site site="RI3-P3"></site>
+    </spatial>
+    <spatial name="LU_RB3_tendon">
+      <site site="LU_RB3-P1"></site>
+      <site site="LU_RB3-P2"></site>
+      <site site="LU_RB3-P3"></site>
+      <site site="LU_RB3-P4"></site>
+      <site site="LU_RB3-P5"></site>
+    </spatial>
+    <spatial name="UI_UB3_tendon">
+      <site site="UI_UB3-P1"></site>
+      <site site="UI_UB3-P2"></site>
+      <site site="UI_UB3-P3"></site>
+      <site site="UI_UB3-P4"></site>
+      <site site="UI_UB3-P5"></site>
+    </spatial>
+    <spatial name="RI4_tendon">
+      <site site="RI4-P1"></site>
+      <site site="RI4-P2"></site>
+      <site site="RI4-P3"></site>
+    </spatial>
+    <spatial name="LU_RB4_tendon">
+      <site site="LU_RB4-P1"></site>
+      <site site="LU_RB4-P2"></site>
+      <site site="LU_RB4-P3"></site>
+      <site site="LU_RB4-P4"></site>
+      <site site="LU_RB4-P5"></site>
+    </spatial>
+    <spatial name="UI_UB4_tendon">
+      <site site="UI_UB4-P1"></site>
+      <site site="UI_UB4-P2"></site>
+      <site site="UI_UB4-P3"></site>
+      <site site="UI_UB4-P4"></site>
+      <site site="UI_UB4-P5"></site>
+    </spatial>
+    <spatial name="RI5_tendon">
+      <site site="RI5-P1"></site>
+      <site site="RI5-P2"></site>
+      <site site="RI5-P3"></site>
+    </spatial>
+    <spatial name="LU_RB5_tendon">
+      <site site="LU_RB5-P1"></site>
+      <site site="LU_RB5-P2"></site>
+      <site site="LU_RB5-P3"></site>
+      <site site="LU_RB5-P4"></site>
+      <site site="LU_RB5-P5"></site>
+    </spatial>
+    <spatial name="UI_UB5_tendon">
+      <site site="UI_UB5-P1"></site>
+      <site site="UI_UB5-P2"></site>
+      <site site="UI_UB5-P3"></site>
+      <site site="UI_UB5-P4"></site>
+      <site site="UI_UB5-P5"></site>
+    </spatial>
+  </tendon>
+  <actuator>
+    <muscle name="anconeus_r" tendon="anconeus_r_tendon"></muscle>
+    <muscle name="supinator_brevis_r" tendon="supinator_brevis_r_tendon"></muscle>
+    <muscle name="brachialis_r" tendon="brachialis_r_tendon"></muscle>
+    <muscle name="brachioradialis_r" tendon="brachioradialis_r_tendon"></muscle>
+    <muscle name="pronator_teres_r" tendon="pronator_teres_r_tendon"></muscle>
+    <muscle name="pron_quad_r" tendon="pron_quad_r_tendon"></muscle>
+    <muscle name="ext_carp_rad_long_r" tendon="ext_carp_rad_long_r_tendon"></muscle>
+    <muscle name="ext_carp_rad_brev_r" tendon="ext_carp_rad_brev_r_tendon"></muscle>
+    <muscle name="ext_carp_ulnaris_r" tendon="ext_carp_ulnaris_r_tendon"></muscle>
+    <muscle name="flex_carpi_rad_r" tendon="flex_carpi_rad_r_tendon"></muscle>
+    <muscle name="flex_carpi_ulna_r" tendon="flex_carpi_ulna_r_tendon"></muscle>
+    <muscle name="palmaris_longus_r" tendon="palmaris_longus_r_tendon"></muscle>
+    <muscle name="flex_dig_sup_lat_r" tendon="flex_dig_sup_lat_r_tendon"></muscle>
+    <muscle name="flex_dig_sup_ring_r" tendon="flex_dig_sup_ring_r_tendon"></muscle>
+    <muscle name="flex_dig_sup_mid_r" tendon="flex_dig_sup_mid_r_tendon"></muscle>
+    <muscle name="flex_dig_sup_ind_r" tendon="flex_dig_sup_ind_r_tendon"></muscle>
+    <muscle name="flex_dig_prof_lat_r" tendon="flex_dig_prof_lat_r_tendon"></muscle>
+    <muscle name="flex_dig_prof_ring_r" tendon="flex_dig_prof_ring_r_tendon"></muscle>
+    <muscle name="flex_dig_prof_mid_r" tendon="flex_dig_prof_mid_r_tendon"></muscle>
+    <muscle name="flex_dig_prof_ind_r" tendon="flex_dig_prof_ind_r_tendon"></muscle>
+    <muscle name="ext_dig_lat_r" tendon="ext_dig_lat_r_tendon"></muscle>
+    <muscle name="ext_dig_ring_r" tendon="ext_dig_ring_r_tendon"></muscle>
+    <muscle name="ext_dig_mid_r" tendon="ext_dig_mid_r_tendon"></muscle>
+    <muscle name="ext_dig_ind_r" tendon="ext_dig_ind_r_tendon"></muscle>
+    <muscle name="ext_dig_min_r" tendon="ext_dig_min_r_tendon"></muscle>
+    <muscle name="ext_indicis_r" tendon="ext_indicis_r_tendon"></muscle>
+    <muscle name="ext_poll_long_r" tendon="ext_poll_long_r_tendon"></muscle>
+    <muscle name="ext_poll_brev_r" tendon="ext_poll_brev_r_tendon"></muscle>
+    <muscle name="flex_poll_long_r" tendon="flex_poll_long_r_tendon"></muscle>
+    <muscle name="abd_poll_long_r" tendon="abd_poll_long_r_tendon"></muscle>
+    <muscle name="RI2" tendon="RI2_tendon"></muscle>
+    <muscle name="LU_RB2" tendon="LU_RB2_tendon"></muscle>
+    <muscle name="UI_UB2" tendon="UI_UB2_tendon"></muscle>
+    <muscle name="RI3" tendon="RI3_tendon"></muscle>
+    <muscle name="LU_RB3" tendon="LU_RB3_tendon"></muscle>
+    <muscle name="UI_UB3" tendon="UI_UB3_tendon"></muscle>
+    <muscle name="RI4" tendon="RI4_tendon"></muscle>
+    <muscle name="LU_RB4" tendon="LU_RB4_tendon"></muscle>
+    <muscle name="UI_UB4" tendon="UI_UB4_tendon"></muscle>
+    <muscle name="RI5" tendon="RI5_tendon"></muscle>
+    <muscle name="LU_RB5" tendon="LU_RB5_tendon"></muscle>
+    <muscle name="UI_UB5" tendon="UI_UB5_tendon"></muscle>
+  </actuator>
+  <equality>
+    <joint name="sternoclavicular_r_r3_con" joint1="sternoclavicular_r_r3" joint2="shoulder_elevation_r" active="true" polycoef="0.161006 0.161007        0        0        0"></joint>
+    <joint name="unrotscap_r_r3_con" joint1="unrotscap_r_r3" joint2="shoulder_elevation_r" active="true" polycoef="-0.161006 -0.161007        0        0        0"></joint>
+    <joint name="acromioclavicular_r_r2_con" joint1="acromioclavicular_r_r2" joint2="shoulder_elevation_r" active="true" polycoef="-0.064141 -0.064141        0        0        0"></joint>
+    <joint name="unrothum_r_r1_con" joint1="unrothum_r_r1" joint2="shoulder_elevation_r" active="true" polycoef="-0.233001 -0.233002        0        0        0"></joint>
+    <joint name="unrothum_r_r3_con" joint1="unrothum_r_r3" joint2="shoulder_elevation_r" active="true" polycoef="-0.518365 -0.518365        0        0        0"></joint>
+    <joint name="radius_wrist_prox_r_r1_con" joint1="radius_wrist_prox_r_r1" joint2="wrist_deviation_r" active="true" polycoef="       0        1        0        0        0"></joint>
+    <joint name="wrist_prox_distal_r_r1_con" joint1="wrist_prox_distal_r_r1" joint2="wrist_deviation_r" active="true" polycoef="0.163624 0.349065 -0.0763577        0        0"></joint>
+    <joint name="DELT2pt2a_r_tx_con" joint1="DELT2pt2a_r_tx" joint2="shoulder_elevation_r" active="true" polycoef="-0.00845 -0.00845        0        0        0"></joint>
+    <joint name="DELT2pt2a_r_tz_con" joint1="DELT2pt2a_r_tz" joint2="shoulder_elevation_r" active="true" polycoef="-0.00896998 -0.01815 -0.00918002        0        0"></joint>
+    <weld name="torso_TZ_constraint" active="true" body1="torso"></weld>
+    <weld name="torso_TY_constraint" active="true" body1="torso"></weld>
+    <weld name="torso_TX_constraint" active="true" body1="torso"></weld>
+    <weld name="torso_RY_constraint" active="true" body1="torso"></weld>
+    <weld name="torso_RX_constraint" active="true" body1="torso"></weld>
+    <weld name="torso_RZ_constraint" active="true" body1="torso"></weld>
+    <weld name="origin_to_worldbody" body1="torso" active="false"></weld>
+  </equality>
+</mujoco>

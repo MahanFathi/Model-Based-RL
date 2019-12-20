@@ -1,0 +1,27 @@
+MUJOCO:
+  ENV: 'HandModelTSLAdjustedEnv'
+  CLIP_ACTIONS: false
+MODEL:
+  META_ARCHITECTURE: 'Basic'
+  BATCH_SIZE: 1
+  EPOCHS: 200
+  POLICY:
+    ARCH: 'VariationalOptimization'
+    METHOD: 'R'
+    LAYERS:
+      - 128
+      - 128
+    GAMMA: 0.99
+    MAX_HORIZON_STEPS: 200
+    INITIAL_SD: 0.05
+    INITIAL_ACTION_MEAN: 0.01
+    INITIAL_ACTION_SD: 0.005
+SOLVER:
+  BASE_LR: 0.05
+  WEIGHT_DECAY: 0.0
+  BIAS_LR_FACTOR: 1
+  STD_LR_FACTOR: 1.0
+  ADAM_BETAS: (0.9, 0.999)
+LOG:
+  TESTING:
+    ENABLED: True
