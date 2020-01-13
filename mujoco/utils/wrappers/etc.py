@@ -3,6 +3,10 @@ import torch
 import numpy as np
 from copy import deepcopy
 from utils.index import Index
+import mujoco_py
+from multiprocessing import Process, Queue
+import imageio
+import glfw
 
 
 class AccumulateWrapper(gym.Wrapper):
@@ -174,3 +178,42 @@ class IndexWrapper(gym.Wrapper):
 
     def set_batch_idx(self, idx):
         self._batch_idx.set(idx)
+
+
+class ViewerWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        super(ViewerWrapper, self).__init__(env)
+
+        # Initialise a MjViewer
+        self._viewer = mujoco_py.MjViewer(self.sim)
+
+        if not self.cfg.LOG.TESTING.RECORD_VIDEO:
+            self._viewer._run_speed = 1/self.cfg.MODEL.FRAME_SKIP
+
+        self.unwrapped._viewers["human"] = self._viewer
+
+        # Set height and width for recorded video
+        self.width = 1600
+        self.height = 1200
+
+    def render(self, mode='human', **kwargs):
+        if self.cfg.LOG.TESTING.RECORD_VIDEO:
+            kwargs.update({"width": self.width, "height": self.height})
+        return self.env.render(mode, **kwargs)
+
+    #def start_recording(self, filepath):
+        #if not self._viewer._record_video:
+        #    fps = (1 / self._viewer._time_per_render)
+        #    self._viewer._video_process = Process(target=save_video, args=(self._viewer._video_queue, filepath, fps))
+        #    self._viewer._video_process.start()
+        #    self._viewer._record_video = True
+        #self._viewer.key_callback(self._viewer.sim._render_context_window.window, glfw.KEY_V, None, glfw.RELEASE, None)
+
+    #def stop_recording(self):
+        #self._viewer.key_callback(self._viewer.sim._render_context_window.window, glfw.KEY_V, None, glfw.RELEASE, None)
+        #if self._viewer._record_video:
+        #    self._viewer._video_queue.put(None)
+        #    self._viewer._video_process.join()
+        #    self._viewer._video_idx += 1
+        #    self._viewer._record_video = False
