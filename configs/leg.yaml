@@ -3,11 +3,11 @@ MUJOCO:
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
-  BATCH_SIZE: 1
+  BATCH_SIZE: 32
   EPOCHS: 100
   POLICY:
     ARCH: 'Perttu'
-    METHOD: 'Grad'
+    METHOD: 'VO'
     LAYERS:
       - 128
       - 128
