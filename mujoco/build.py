@@ -1,11 +1,11 @@
 from mujoco import envs
 from mujoco.utils.wrappers.mj_block import MjBlockWrapper
-from mujoco.utils.wrappers.etc import SnapshotWrapper, IndexWrapper
+from mujoco.utils.wrappers.etc import SnapshotWrapper, IndexWrapper, ViewerWrapper
 
 
 def build_agent(cfg):
     agent_factory = getattr(envs, cfg.MUJOCO.ENV)
-    agent = agent_factory()
+    agent = agent_factory(cfg)
 #    if cfg.MUJOCO.REWARD_SCALE != 1.0:
 #        from .utils import RewardScaleWrapper
 #        agent = RewardScaleWrapper(agent, cfg.MUJOCO.REWARD_SCALE)
@@ -15,6 +15,12 @@ def build_agent(cfg):
 #    if cfg.MODEL.POLICY.ARCH == 'TrajOpt':
 #        from .utils import FixedStateWrapper
 #        agent = FixedStateWrapper(agent)
+
+    # Make configs accessible through agent
+    #agent.cfg = cfg
+
+    # Record video
+    agent = ViewerWrapper(agent)
 
     # Keep track of step, episode, and batch indices
     agent = IndexWrapper(agent, cfg.MODEL.BATCH_SIZE)
