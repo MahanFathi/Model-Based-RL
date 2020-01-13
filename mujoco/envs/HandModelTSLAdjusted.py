@@ -100,36 +100,37 @@ class HandModelTSLAdjustedEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.reset_model()
 
         # Load a dataset from how-bots-type
-        data_filename = "/home/aleksi/Workspace/how-bots-type/data/24fps/000895_sentences_mocap_with_key_states.msgpack"
-        mocap_data = MocapWithKeyStateData.load(data_filename)
-        mocap_ds = mocap_data.as_dataset()
+        if False:
+            data_filename = "/home/aleksi/Workspace/how-bots-type/data/24fps/000895_sentences_mocap_with_key_states.msgpack"
+            mocap_data = MocapWithKeyStateData.load(data_filename)
+            mocap_ds = mocap_data.as_dataset()
 
-        # Get positions of each fingertip, maybe start with just 60 seconds
-        fps = 24
-        length = 10
-        self.fingers = ["thumb", "index", "middle", "ring", "little"]
-        fingers_coords = mocap_ds.fingers.isel(time=range(0, length*fps)).sel(hand='right', joint='tip', finger=self.fingers).values
+            # Get positions of each fingertip, maybe start with just 60 seconds
+            fps = 24
+            length = 10
+            self.fingers = ["thumb", "index", "middle", "ring", "little"]
+            fingers_coords = mocap_ds.fingers.isel(time=range(0, length*fps)).sel(hand='right', joint='tip', finger=self.fingers).values
 
-        # We need to transform the mocap coordinates to simulation coordinates
-        for time_idx in range(fingers_coords.shape[0]):
+            # We need to transform the mocap coordinates to simulation coordinates
+            for time_idx in range(fingers_coords.shape[0]):
+                for finger_idx in range(fingers_coords.shape[1]):
+                    coords = np.concatenate((fingers_coords[time_idx, finger_idx, :], np.array([1])))
+                    coords[1] *= -1
+                    coords = np.matmul(T, coords)
+                    fingers_coords[time_idx, finger_idx, :] = coords[:3]
+
+            # Get timestamps in seconds
+            time = mocap_ds.isel(time=range(0, length*fps)).time.values / np.timedelta64(1, 's')
+
+            # We want to interpolate finger positions every (self.frame_skip * self.model.opt.timestep) second
+            time_interp = np.arange(0, length, self.frame_skip * self.model.opt.timestep)
+            self.fingers_targets = {x: np.empty(time_interp.shape + fingers_coords.shape[2:]) for x in self.fingers}
+            #self.fingers_targets = np.empty(time_interp.shape + fingers_coords.shape[1:])
             for finger_idx in range(fingers_coords.shape[1]):
-                coords = np.concatenate((fingers_coords[time_idx, finger_idx, :], np.array([1])))
-                coords[1] *= -1
-                coords = np.matmul(T, coords)
-                fingers_coords[time_idx, finger_idx, :] = coords[:3]
-
-        # Get timestamps in seconds
-        time = mocap_ds.isel(time=range(0, length*fps)).time.values / np.timedelta64(1, 's')
-
-        # We want to interpolate finger positions every (self.frame_skip * self.model.opt.timestep) second
-        time_interp = np.arange(0, length, self.frame_skip * self.model.opt.timestep)
-        self.fingers_targets = {x: np.empty(time_interp.shape + fingers_coords.shape[2:]) for x in self.fingers}
-        #self.fingers_targets = np.empty(time_interp.shape + fingers_coords.shape[1:])
-        for finger_idx in range(fingers_coords.shape[1]):
-            for coord_idx in range(fingers_coords.shape[2]):
-                #self.fingers_targets[:, finger_idx, coord_idx] = np.interp(time_interp, time, self.fingers_coords[:, self.finger_idx, coord_idx])
-                self.fingers_targets[self.fingers[finger_idx]][:, coord_idx] = \
-                    np.interp(time_interp, time, fingers_coords[:, finger_idx, coord_idx])
+                for coord_idx in range(fingers_coords.shape[2]):
+                    #self.fingers_targets[:, finger_idx, coord_idx] = np.interp(time_interp, time, self.fingers_coords[:, self.finger_idx, coord_idx])
+                    self.fingers_targets[self.fingers[finger_idx]][:, coord_idx] = \
+                        np.interp(time_interp, time, fingers_coords[:, finger_idx, coord_idx])
 
         self.initialised = True
 
