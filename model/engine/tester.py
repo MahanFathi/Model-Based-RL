@@ -5,7 +5,6 @@ def do_testing(
         cfg,
         model,
         agent,
-        video_recorder,
         samples=None,
         first_state=None
 ):
@@ -25,14 +24,12 @@ def do_testing(
         episode_iteration = 0
         for step_idx in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
             if cfg.LOG.TESTING.RECORD_VIDEO:
-                video_recorder.capture_frame()
+                agent.capture_frame()
             else:
                 agent.render()
             #state, reward = model(state, samples[:, step_idx])
             state, reward = model(state)
-            #state, reward, done, _ = agent.step(action)
             reward_sum += reward
-            #decay *= gamma
             #if agent.is_done:
             #     break
         return reward_sum/episode_iteration

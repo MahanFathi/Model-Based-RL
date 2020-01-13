@@ -93,9 +93,8 @@ def do_training(
         if cfg.LOG.TESTING.ENABLED:
             if epoch_idx % cfg.LOG.TESTING.ITER_PERIOD == 0:
 
-                # Create a VideoRecorder to record this rollout
-                video_recorder = VideoRecorder(agent, path=os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx)))
-                #agent.start_recording(os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx)))
+                # Record if required
+                agent.start_recording(os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx)))
 
                 test_rewards = []
                 for _ in range(cfg.LOG.TESTING.COUNT_PER_ITER):
@@ -103,7 +102,6 @@ def do_training(
                         cfg,
                         model,
                         agent,
-                        video_recorder
                         # first_state=state_xr.get_item(),
                     )
                     test_rewards.append(test_reward)
@@ -112,8 +110,7 @@ def do_training(
                 model.train()
 
                 # Close the recorder
-                video_recorder.close()
-                #agent.stop_recording()
+                agent.stop_recording()
 
     # Save outputs into log folder
     lg.save_dict_into_csv(output_results_dir, "output", output)

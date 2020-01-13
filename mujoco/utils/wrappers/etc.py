@@ -5,7 +5,7 @@ from copy import deepcopy
 from utils.index import Index
 import mujoco_py
 from multiprocessing import Process, Queue
-import imageio
+import skvideo
 import glfw
 
 
@@ -185,35 +185,48 @@ class ViewerWrapper(gym.Wrapper):
     def __init__(self, env):
         super(ViewerWrapper, self).__init__(env)
 
-        # Initialise a MjViewer
-        self._viewer = mujoco_py.MjViewer(self.sim)
-
         if not self.cfg.LOG.TESTING.RECORD_VIDEO:
+            # Initialise a MjViewer
+            self._viewer = mujoco_py.MjViewer(self.sim)
             self._viewer._run_speed = 1/self.cfg.MODEL.FRAME_SKIP
+            self.unwrapped._viewers["human"] = self._viewer
 
-        self.unwrapped._viewers["human"] = self._viewer
+        # Keep params in this class to reduce clutter
+        class Recorder:
+            width = 1600
+            height = 1200
+            imgs = []
+            record = False
+            filepath = None
 
-        # Set height and width for recorded video
-        self.width = 1600
-        self.height = 1200
+        self.recorder = Recorder
 
-    def render(self, mode='human', **kwargs):
+        # Check if we want to record roll-outs
         if self.cfg.LOG.TESTING.RECORD_VIDEO:
-            kwargs.update({"width": self.width, "height": self.height})
-        return self.env.render(mode, **kwargs)
+            self.recorder.record = True
 
-    #def start_recording(self, filepath):
-        #if not self._viewer._record_video:
-        #    fps = (1 / self._viewer._time_per_render)
-        #    self._viewer._video_process = Process(target=save_video, args=(self._viewer._video_queue, filepath, fps))
-        #    self._viewer._video_process.start()
-        #    self._viewer._record_video = True
-        #self._viewer.key_callback(self._viewer.sim._render_context_window.window, glfw.KEY_V, None, glfw.RELEASE, None)
+        # Create a viewer if we're not recording
+        else:
+            # Initialise a MjViewer
+            self._viewer = mujoco_py.MjViewer(self.sim)
+            self._viewer._run_speed = 1/self.cfg.MODEL.FRAME_SKIP
+            self.unwrapped._viewers["human"] = self._viewer
 
-    #def stop_recording(self):
-        #self._viewer.key_callback(self._viewer.sim._render_context_window.window, glfw.KEY_V, None, glfw.RELEASE, None)
-        #if self._viewer._record_video:
-        #    self._viewer._video_queue.put(None)
-        #    self._viewer._video_process.join()
-        #    self._viewer._video_idx += 1
-        #    self._viewer._record_video = False
+    def capture_frame(self):
+        if self.recorder.record:
+            self.recorder.imgs.append(np.flip(self.sim.render(self.recorder.width, self.recorder.height), axis=0))
+
+    def start_recording(self, filepath):
+        if self.recorder.record:
+            self.recorder.filepath = filepath
+            self.recorder.imgs.clear()
+
+    def stop_recording(self):
+        if self.recorder.record:
+            writer = skvideo.io.FFmpegWriter(
+                self.recorder.filepath, inputdict={"-s": "{}x{}".format(self.recorder.width, self.recorder.height),
+                                                   "-r": str(1 / (self.model.opt.timestep*self.cfg.MODEL.FRAME_SKIP))})
+            for img in self.recorder.imgs:
+                writer.writeFrame(img)
+            writer.close()
+            self.recorder.imgs.clear()
