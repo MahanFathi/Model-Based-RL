@@ -12,9 +12,11 @@ class SwimmerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         * FULL STATE OBSERVATIONS, I.E. QPOS CONCAT'D WITH QVEL.
         * is_done METHOD SHOULD BE IMPLEMENTED
     """
-    def __init__(self):
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.frame_skip = self.cfg.MODEL.FRAME_SKIP
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
-        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "swimmer.xml"), 4)
+        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "swimmer.xml"), self.frame_skip)
         utils.EzPickle.__init__(self)
 
     def step(self, a):
@@ -35,6 +37,7 @@ class SwimmerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         return np.concatenate([qpos.flat, qvel.flat])
 
     def reset_model(self):
+        self.sim.reset()
         self.set_state(
             self.init_qpos + self.np_random.uniform(low=-.1, high=.1, size=self.model.nq),
             self.init_qvel + self.np_random.uniform(low=-.1, high=.1, size=self.model.nv)
