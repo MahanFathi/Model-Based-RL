@@ -6,7 +6,7 @@
     <geom contype="1" conaffinity="1" condim="3" rgba="0.8 0.6 .4 1" margin="0.001" solref=".02 1" solimp=".8 .8 .01" material="geom"></geom>
     <site size="0.001"></site>
     <tendon width="0.001" rgba=".95 .3 .3 1" limited="false"></tendon>
-    <muscle scale="1000"></muscle>
+    <muscle scale="200"></muscle>
   </default>
   <option timestep="0.002" iterations="50" solver="PGS">
     <flag energy="enable"></flag>
@@ -850,9 +850,18 @@
     </spatial>
   </tendon>
   <actuator>
+    <motor name="acromioclavicular_r_r1" joint="acromioclavicular_r_r1" gear="40 0 0 0 0 0"></motor>
+    <motor name="acromioclavicular_r_r2" joint="acromioclavicular_r_r2" gear="40 0 0 0 0 0"></motor>
+    <motor name="acromioclavicular_r_r3" joint="acromioclavicular_r_r3" gear="40 0 0 0 0 0"></motor>
+    <motor name="unrothum_r_r1" joint="unrothum_r_r1" gear="40 0 0 0 0 0"></motor>
+    <motor name="unrothum_r_r2" joint="unrothum_r_r2" gear="40 0 0 0 0 0"></motor>
+    <motor name="unrothum_r_r3" joint="unrothum_r_r3" gear="40 0 0 0 0 0"></motor>
+    <motor name="elevation_angle_r" joint="elevation_angle_r" gear="40 0 0 0 0 0"></motor>
+    <motor name="shoulder1_r_r2" joint="shoulder1_r_r2" gear="40 0 0 0 0 0"></motor>
+    <motor name="shoulder_elevation" joint="shoulder_elevation_r" gear="40 0 0 0 0 0"></motor>
+    <motor name="shoulder_rotation" joint="shoulder_rotation_r" gear="40 0 0 0 0 0"></motor>
     <muscle name="anconeus_r" tendon="anconeus_r_tendon"></muscle>
     <muscle name="supinator_brevis_r" tendon="supinator_brevis_r_tendon"></muscle>
-    <muscle name="brachialis_r" tendon="brachialis_r_tendon"></muscle>
     <muscle name="brachioradialis_r" tendon="brachioradialis_r_tendon"></muscle>
     <muscle name="pronator_teres_r" tendon="pronator_teres_r_tendon"></muscle>
     <muscle name="pron_quad_r" tendon="pron_quad_r_tendon"></muscle>
