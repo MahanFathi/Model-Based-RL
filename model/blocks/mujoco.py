@@ -66,6 +66,8 @@ def mj_torch_block_factory(agent, mode):
             else:
                 raise TypeError("mode has to be 'dynamics' or 'reward'")
 
+            weight = 1/(agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS - ctx.data_snapshot.step_idx.value)
+
             if False:
                 torch.set_printoptions(precision=3, sci_mode=False)
                 print("{} {}".format(ctx.data_snapshot.time, mode))
@@ -79,6 +81,7 @@ def mj_torch_block_factory(agent, mode):
                 print(torch.matmul(grad_output, state_jacobian))
                 print("grad_output*action_jacobian")
                 print(torch.matmul(grad_output, action_jacobian))
+                print('weight: {} ---- 1/({} - {})'.format(weight, agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS, ctx.data_snapshot.step_idx))
                 print("")
 
             #t = 2
@@ -87,7 +90,7 @@ def mj_torch_block_factory(agent, mode):
             da = torch.matmul(grad_output, action_jacobian)
             #da = torch.max(torch.min(da, torch.DoubleTensor([t])), torch.DoubleTensor([-t]))
 
-            return ds, da
+            return 0.99*ds, weight*da
 
     return MjBlock
 

@@ -89,9 +89,30 @@ class BaseStrategy(ABC, nn.Module):
 
     # From Tassa 2012 synthesis and stabilization of complex behaviour
     def clamp_sd(self, sd):
-        #return sd
-        return torch.exp(sd)
-        #return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
+        #return torch.max(sd, 0.001*torch.ones(sd.shape, dtype=torch.double))
+        #return torch.exp(sd)
+        return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
+
+    def clamp_action(self, action):
+        #return self.soft_relu(action, self.soft_relu_beta)
+        # return torch.clamp(action, min=0.0, max=1.0)  # NB! Kills gradients at borders
+        #return torch.exp(action)
+
+        if self.mean_network:
+            #for idx in range(len(action)):
+            #    if idx < 10:
+            #        action[idx] = action[idx]/10
+            #    else:
+            #        action[idx] = torch.exp(action[idx])/20
+            pass
+        else:
+            for idx in range(len(action)):
+                if idx < 10 or action[idx] >= 0:
+                    continue
+                elif action[idx] < 0:
+                    action[idx].data -= action[idx].data
+
+        return action
 
     def get_clamped_sd(self):
         return self.clamp_sd(self.sd).detach().numpy()
@@ -142,16 +163,17 @@ class BaseStrategy(ABC, nn.Module):
 
         # Initialise a tensor for returns
         #ret = torch.empty(batch_loss.shape, dtype=torch.float64)
-        # Calculate returns
+        ## Calculate returns
         #for episode_idx, episode_loss in enumerate(batch_loss):
         #    R = torch.zeros(1, dtype=torch.float64)
         #    for step_idx in range(1, len(episode_loss)+1):
         #        R = -episode_loss[-step_idx] + self.gamma*R.detach()
         #        ret[episode_idx, -step_idx] = R
         #avg_stepwise_loss = torch.mean(-ret, dim=0)
+        #advantages = ret - ret.mean(dim=0)
 
         #means = torch.mean(batch_loss, dim=0)
-        #idxs = means > torch.mean(means).detach()
+        #idxs = (batch_loss > torch.median(batch_loss)).detach()
         #idxs = sums < np.mean(sums)
 
         #advantages = torch.zeros((1, batch_loss.shape[1]))
@@ -164,16 +186,27 @@ class BaseStrategy(ABC, nn.Module):
         #    if torch.any(idxs[:,i]):
         #        advantages.append(torch.mean(batch_loss[idxs[:,i],i], dim=0))
 
+        #batch_loss = (batch_loss - batch_loss.mean(dim=1).detach()) / (batch_loss.std(dim=1).detach() + self.eps)
         #batch_loss = (batch_loss - batch_loss.mean(dim=0).detach()) / (batch_loss.std(dim=0).detach() + self.eps)
-        #advantages = batch_loss / (batch_loss.std(dim=0).detach() + self.eps)
+        #batch_loss = (batch_loss - batch_loss.mean(dim=0).detach())
+
+        #fvals = torch.empty(batch_loss.shape[0])
+        #for episode_idx, episode_loss in enumerate(batch_loss):
+        #    nans = torch.isnan(episode_loss)
+        #    fvals[episode_idx] = torch.sum(episode_loss[nans == False])
+
 
         if stepwise_loss:
             return torch.mean(batch_loss, dim=0)
         else:
+            #return torch.sum(batch_loss[0][100])
             #return torch.sum(advantages[advantages<0])
-            return torch.mean(torch.sum(batch_loss, dim=1))
-            #return torch.sum(torch.mean(batch_loss, dim=0))
-            #return torch.sum(batch_loss)
+            #idxs = torch.isnan(batch_loss) == False
+            #return torch.sum(batch_loss[idxs])
+            #return torch.mean(fvals)
+            #return torch.mean(torch.sum(batch_loss, dim=1))
+            return torch.sum(torch.mean(batch_loss, dim=0))
+            #return batch_loss[0][-1]
             #return torch.sum(torch.stack(advantages))
 
         # Remove baseline
@@ -194,6 +227,7 @@ class BaseStrategy(ABC, nn.Module):
 
         return objective_loss, {"objective_loss": float(torch.mean(torch.sum(batch_loss, dim=1)).detach().numpy()),
                                 "total_loss": float(objective_loss.detach().numpy())}
+                                #"total_loss": batch_loss.detach().numpy()}
 
 
     def PR_loss(self, batch_loss):
@@ -286,6 +320,13 @@ class BaseStrategy(ABC, nn.Module):
         self.optimizer.zero_grad()
         loss.backward()
         #nn.utils.clip_grad_norm_(self.parameters(), 0.1)
+        #print("{} {}".format(self.mean._layers["linear_layer_0"].weight.grad.min(),
+        #                        self.mean._layers["linear_layer_0"].weight.grad.max()))
+        #print("{} {}".format(self.mean._layers["linear_layer_1"].weight.grad.min(),
+        #                        self.mean._layers["linear_layer_1"].weight.grad.max()))
+        #print("{} {}".format(self.mean._layers["linear_layer_2"].weight.grad.min(),
+        #                        self.mean._layers["linear_layer_2"].weight.grad.max()))
+        #nn.utils.clip_grad_value_(self.parameters(), 0.3)
         self.optimizer.step()
 
         # Empty log probs
@@ -328,16 +369,15 @@ class VariationalOptimization(BaseStrategy):
                 self.cfg.MODEL.POLICY.LAYERS,
                 self.action_dim
             )
-
         else:
             # Set tensors for means
             self.mean = Parameter(torch.from_numpy(
-                self.initialise_mean(self.cfg.MODEL.POLICY.INITIAL_ACTION_MEAN, self.cfg.MODEL.POLICY.INITIAL_ACTION_SD, seed=1111)
+                self.initialise_mean(self.cfg.MODEL.POLICY.INITIAL_ACTION_MEAN, self.cfg.MODEL.POLICY.INITIAL_ACTION_SD)
             ))
             self.register_parameter("mean", self.mean)
 
         # Set tensors for standard deviations
-        self.sd = Parameter(torch.from_numpy(self.initialise_sd(self.cfg.MODEL.POLICY.INITIAL_LOG_SD)))
+        self.sd = Parameter(torch.from_numpy(self.initialise_sd(self.cfg.MODEL.POLICY.INITIAL_SD)))
         self.initial_clamped_sd = self.clamp_sd(self.sd.detach())
         self.register_parameter("sd", self.sd)
         #self.clamped_sd = np.zeros((self.action_dim, self.horizon), dtype=np.float64)
@@ -371,10 +411,11 @@ class VariationalOptimization(BaseStrategy):
             mean = self.mean[:, self.step_idx]
 
         if not self.training:
-            return mean
+            return self.clamp_action(mean)
+            #return mean
 
         # Get normal distribution
-        dist = torch.distributions.Normal(mean, 0.01)
+        dist = torch.distributions.Normal(mean, clamped_sd)
 
         # Sample action
         if self.method == "H" and self.episode_idx == 0:
@@ -383,11 +424,12 @@ class VariationalOptimization(BaseStrategy):
             else:
                 action = torch.from_numpy(self.best_actions[:, self.step_idx])
         else:
-            #action = dist.rsample()
-            action = mean
+            action = dist.rsample()
+            #action = mean
 
             # Clip action
-            action = self.clip_negative(action)
+            action = self.clamp_action(action)
+            #action = self.clip_negative(action)
             #action = self.clip(action, mean, 2.0*clamped_sd)
 
         self.clamped_action[:, self.step_idx, self.episode_idx-1] = action.detach().numpy()
@@ -419,7 +461,7 @@ class CMAES(BaseStrategy):
         self.orig_actions = []
 
         # Initialise CMA-ES
-        self.optimizer = cma.CMAEvolutionStrategy(self.mean, 0.05, inopts=cmaes_options)
+        self.optimizer = cma.CMAEvolutionStrategy(self.mean, self.cfg.MODEL.POLICY.INITIAL_SD, inopts=cmaes_options)
         self.actions = []
 
     def forward(self, state):

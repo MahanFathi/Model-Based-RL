@@ -10,7 +10,6 @@ import torch
 niter = 30
 nwarmup = 3
 eps = 1e-6
-nsteps = 2
 
 
 def copy_data(m, d_source, d_dest):
@@ -354,6 +353,9 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
     drdctrl = np.empty((1, m.nu))
     drdqpos = np.empty((1, m.nq))
     drdqvel = np.empty((1, m.nv))
+
+    # Get number of steps (must be >=2 for muscles)
+    nsteps = agent.cfg.MODEL.NSTEPS_FOR_BACKWARD
 
     # For testing purposes
     if test:
