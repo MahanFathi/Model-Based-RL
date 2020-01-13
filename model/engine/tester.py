@@ -1,5 +1,6 @@
 import torch
 
+
 def do_testing(
         cfg,
         model,
@@ -23,9 +24,10 @@ def do_testing(
         reward_sum = 0.
         episode_iteration = 0
         for step_idx in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
-            agent.render()
-            # video_recorder.capture_frame()
-            #action = model(state)
+            if cfg.LOG.TESTING.RECORD_VIDEO:
+                video_recorder.capture_frame()
+            else:
+                agent.render()
             #state, reward = model(state, samples[:, step_idx])
             state, reward = model(state)
             #state, reward, done, _ = agent.step(action)

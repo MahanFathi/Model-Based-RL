@@ -1,12 +1,14 @@
 import torch
 import numpy as np
 import os
+from gym.wrappers.monitoring.video_recorder import VideoRecorder
 
 from model.engine.tester import do_testing
 import utils.logger as lg
 from utils.visdom_plots import VisdomLogger
 from mujoco import build_agent
 from model import build_model
+
 
 
 def do_training(
@@ -39,9 +41,6 @@ def do_training(
     if cfg.LOG.TESTING.ENABLED:
         if cfg.LOG.PLOT.ENABLED:
             visdom.register_keys(['test_reward'])
-        # NOTE: wrappers here won't affect the PyTorch MuJoCo blocks
-        from gym.wrappers.monitoring.video_recorder import VideoRecorder
-        video_recorder = VideoRecorder(agent)
 
     # Collect losses here
     output = {"epoch": [], "objective_loss": []}
@@ -68,6 +67,7 @@ def do_training(
 
             if cfg.LOG.PLOT.ENABLED:
                 visdom.update(loss)
+                #visdom.set({'total_loss': loss["total_loss"].transpose()})
 
                 clamped_sd = model.policy_net.get_clamped_sd()
                 clamped_action = model.policy_net.get_clamped_action()
@@ -92,19 +92,28 @@ def do_training(
 
         if cfg.LOG.TESTING.ENABLED:
             if epoch_idx % cfg.LOG.TESTING.ITER_PERIOD == 0:
-                video_recorder.path = os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx))
+
+                # Create a VideoRecorder to record this rollout
+                video_recorder = VideoRecorder(agent, path=os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx)))
+                #agent.start_recording(os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx)))
+
                 test_rewards = []
                 for _ in range(cfg.LOG.TESTING.COUNT_PER_ITER):
                     test_reward = do_testing(
                         cfg,
                         model,
                         agent,
-                        video_recorder,
+                        video_recorder
                         # first_state=state_xr.get_item(),
                     )
                     test_rewards.append(test_reward)
+
+                # Set training mode on again
                 model.train()
-                # video_recorder.close()
+
+                # Close the recorder
+                video_recorder.close()
+                #agent.stop_recording()
 
     # Save outputs into log folder
     lg.save_dict_into_csv(output_results_dir, "output", output)
