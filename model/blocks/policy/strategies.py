@@ -7,7 +7,6 @@ from model.layers import FeedForward
 from solver import build_optimizer
 from torch.nn.parameter import Parameter
 from optimizer import Optimizer
-from utils.index import Index
 
 
 class BaseStrategy(ABC, nn.Module):
@@ -60,17 +59,9 @@ class BaseStrategy(ABC, nn.Module):
     def optimize(self, batch_loss):
         pass
 
-    #def optimize(self, batch_loss):
-    #    loss = self._optimize(batch_loss)
-    #    return loss
-
     @abstractmethod
     def forward(self, state):
         pass
-
-    #def forward(self, state):
-    #    action = self._forward(state)
-    #    return action
 
     @staticmethod
     def clip(x, mean, limit):
@@ -98,19 +89,19 @@ class BaseStrategy(ABC, nn.Module):
         # return torch.clamp(action, min=0.0, max=1.0)  # NB! Kills gradients at borders
         #return torch.exp(action)
 
-        if self.mean_network:
+        if self.cfg.MODEL.POLICY.NETWORK:
             #for idx in range(len(action)):
             #    if idx < 10:
             #        action[idx] = action[idx]/10
             #    else:
             #        action[idx] = torch.exp(action[idx])/20
             pass
-        else:
-            for idx in range(len(action)):
-                if idx < 10 or action[idx] >= 0:
-                    continue
-                elif action[idx] < 0:
-                    action[idx].data -= action[idx].data
+        #else:
+        #    for idx in range(len(action)):
+        #        if idx < 10 or action[idx] >= 0:
+        #            continue
+        #        elif action[idx] < 0:
+        #            action[idx].data -= action[idx].data
 
         return action
 
@@ -173,7 +164,7 @@ class BaseStrategy(ABC, nn.Module):
         #advantages = ret - ret.mean(dim=0)
 
         #means = torch.mean(batch_loss, dim=0)
-        #idxs = (batch_loss > torch.median(batch_loss)).detach()
+        #idxs = (batch_loss > torch.mean(batch_loss)).detach()
         #idxs = sums < np.mean(sums)
 
         #advantages = torch.zeros((1, batch_loss.shape[1]))
@@ -205,6 +196,7 @@ class BaseStrategy(ABC, nn.Module):
             #return torch.sum(batch_loss[idxs])
             #return torch.mean(fvals)
             #return torch.mean(torch.sum(batch_loss, dim=1))
+
             return torch.sum(torch.mean(batch_loss, dim=0))
             #return batch_loss[0][-1]
             #return torch.sum(torch.stack(advantages))
@@ -320,13 +312,33 @@ class BaseStrategy(ABC, nn.Module):
         self.optimizer.zero_grad()
         loss.backward()
         #nn.utils.clip_grad_norm_(self.parameters(), 0.1)
-        #print("{} {}".format(self.mean._layers["linear_layer_0"].weight.grad.min(),
-        #                        self.mean._layers["linear_layer_0"].weight.grad.max()))
-        #print("{} {}".format(self.mean._layers["linear_layer_1"].weight.grad.min(),
-        #                        self.mean._layers["linear_layer_1"].weight.grad.max()))
-        #print("{} {}".format(self.mean._layers["linear_layer_2"].weight.grad.min(),
-        #                        self.mean._layers["linear_layer_2"].weight.grad.max()))
+#        print("{} {}".format(self.mean._layers["linear_layer_0"].weight.grad.min(),
+#                                self.mean._layers["linear_layer_0"].weight.grad.max()))
+#        print("{} {}".format(self.mean._layers["linear_layer_1"].weight.grad.min(),
+#                                self.mean._layers["linear_layer_1"].weight.grad.max()))
+#        print("{} {}".format(self.mean._layers["linear_layer_2"].weight.grad.min(),
+#                                self.mean._layers["linear_layer_2"].weight.grad.max()))
         #nn.utils.clip_grad_value_(self.parameters(), 0.3)
+
+        #total_norm_sqr = 0
+        #total_norm_sqr += self.mean._layers["linear_layer_0"].weight.grad.norm() ** 2
+        #total_norm_sqr += self.mean._layers["linear_layer_0"].bias.grad.norm() ** 2
+        #total_norm_sqr += self.mean._layers["linear_layer_1"].weight.grad.norm() ** 2
+        #total_norm_sqr += self.mean._layers["linear_layer_1"].bias.grad.norm() ** 2
+        #total_norm_sqr += self.mean._layers["linear_layer_2"].weight.grad.norm() ** 2
+        #total_norm_sqr += self.mean._layers["linear_layer_2"].bias.grad.norm() ** 2
+
+        #gradient_clip = 0.01
+        #scale = min(1.0, gradient_clip / (total_norm_sqr ** 0.5 + 1e-4))
+        #print("lr: ", scale * self.cfg.SOLVER.BASE_LR)
+
+        #if total_norm_sqr ** 0.5 > gradient_clip:
+
+        #    for param in self.parameters():
+        #    param.data.sub_(scale * self.cfg.SOLVER.BASE_LR)
+        #        if param.grad is not None:
+        #            param.grad = (param.grad * gradient_clip) / (total_norm_sqr ** 0.5)
+                    #pass
         self.optimizer.step()
 
         # Empty log probs
@@ -361,8 +373,7 @@ class VariationalOptimization(BaseStrategy):
         super(VariationalOptimization, self).__init__(*args, **kwargs)
 
         # Initialise mean and sd
-        self.mean_network = False
-        if self.mean_network:
+        if self.cfg.MODEL.POLICY.NETWORK:
             # Set a feedforward network for means
             self.mean = FeedForward(
                 self.state_dim,
@@ -401,18 +412,14 @@ class VariationalOptimization(BaseStrategy):
         # Get clamped sd
         clamped_sd = self.clamp_sd(self.sd[:, self.step_idx])
 
-        #if self.training:
-        #    self.clamped_sd[:, self.step_idx, self.episode_idx] = clamped_sd.detach().numpy()
-
         # Get mean of action value
-        if self.mean_network:
+        if self.cfg.MODEL.POLICY.NETWORK:
             mean = self.mean(state).double()
         else:
             mean = self.mean[:, self.step_idx]
 
         if not self.training:
             return self.clamp_action(mean)
-            #return mean
 
         # Get normal distribution
         dist = torch.distributions.Normal(mean, clamped_sd)
@@ -423,16 +430,17 @@ class VariationalOptimization(BaseStrategy):
                 action = mean
             else:
                 action = torch.from_numpy(self.best_actions[:, self.step_idx])
-        else:
+        elif self.batch_size > 1:
             action = dist.rsample()
-            #action = mean
+        else:
+            action = mean
 
             # Clip action
             action = self.clamp_action(action)
-            #action = self.clip_negative(action)
             #action = self.clip(action, mean, 2.0*clamped_sd)
 
         self.clamped_action[:, self.step_idx, self.episode_idx-1] = action.detach().numpy()
+
         # Get log prob for REINFORCE loss calculations
         self.log_prob[self.episode_idx-1, self.step_idx] = dist.log_prob(action.detach()).sum()
 
