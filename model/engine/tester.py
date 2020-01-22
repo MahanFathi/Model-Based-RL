@@ -16,7 +16,7 @@ def do_testing(
     with torch.no_grad():
 
         if first_state is None:
-            state = torch.Tensor(agent.reset(update_episode_idx=False))
+            state = torch.DoubleTensor(agent.reset(update_episode_idx=False))
         else:
             state = first_state
             agent.set_from_torch_state(state)
