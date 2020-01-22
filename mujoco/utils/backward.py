@@ -3,6 +3,7 @@
 import mujoco_py as mj
 import numpy as np
 import torch
+from copy import deepcopy
 
 # ============================================================
 #                           CONFIG
@@ -384,7 +385,7 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
         qpos_fwd = next_state[:agent.model.nq]
         qvel_fwd = next_state[agent.model.nq:]
 
-    # finite-difference over control values: skip = mjSTAGE_VEL
+    # finite-difference over control values
     for i in range(m.nu):
 
         # Initialise simulation
@@ -397,14 +398,14 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
         for _ in range(nsteps):
             info = agent.step(d.ctrl.copy())
 
-        # Compute gradients of qpos and qvel wrt control
+        # Compute gradient of state wrt control
         dsdctrl[:m.nq, i] = (d.qpos - qpos_fwd) / eps
         dsdctrl[m.nq:, i] = (d.qvel - qvel_fwd) / eps
 
-        # Compute gradients of qpos and qvel wrt reward
+        # Compute gradient of reward wrt to control
         drdctrl[0, i] = (info[1] - reward) / eps
 
-    # finite-difference over velocity: skip = mjSTAGE_POS
+    # finite-difference over velocity
     for i in range(m.nv):
 
         # Initialise simulation
@@ -413,18 +414,22 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
         # Perturb velocity
         d.qvel[i] += eps
 
+        # Calculate new ctrl (if it's dependent on state)
+        if agent.cfg.MODEL.POLICY.NETWORK:
+            d.ctrl[:] = agent.policy_net(torch.from_numpy(np.concatenate((d.qpos, d.qvel))).float()).double().detach().numpy()
+
         # Step with perturbed simulation
         for _ in range(nsteps):
             info = agent.step(d.ctrl)
 
-        # Compute gradients of qpos and qvel wrt qvel
+        # Compute gradient of state wrt qvel
         dsdqvel[:m.nq, i] = (d.qpos - qpos_fwd) / eps
         dsdqvel[m.nq:, i] = (d.qvel - qvel_fwd) / eps
 
-        # Compute gradients of qpos and qvel wrt reward
+        # Compute gradient of reward wrt qvel
         drdqvel[0, i] = (info[1] - reward) / eps
 
-    # finite-difference over position: skip = mjSTAGE_NONE
+    # finite-difference over position
     for i in range(m.nq):
 
         # Initialise simulation
@@ -451,15 +456,19 @@ def calculate_gradients(agent, data_snapshot, next_state, reward, test=False):
         else:
             d.qpos[m.jnt_qposadr[jid] + i - m.jnt_dofadr[jid]] += eps
 
+        # Calculate new ctrl (if it's dependent on state)
+        if agent.cfg.MODEL.POLICY.NETWORK:
+            d.ctrl[:] = agent.policy_net(torch.from_numpy(np.concatenate((d.qpos, d.qvel))).float()).double().detach().numpy()
+
         # Step simulation with perturbed position
         for _ in range(nsteps):
             info = agent.step(d.ctrl)
 
-        # Compute gradients of qpos and qvel wrt qpos
+        # Compute gradient of state wrt qpos
         dsdqpos[:m.nq, i] = (d.qpos - qpos_fwd) / eps
         dsdqpos[m.nq:, i] = (d.qvel - qvel_fwd) / eps
 
-        # Compute gradients of qpos and qvel wrt reward
+        # Compute gradient of reward wrt qpos
         drdqpos[0, i] = (info[1] - reward) / eps
 
     # Set dynamics gradients
