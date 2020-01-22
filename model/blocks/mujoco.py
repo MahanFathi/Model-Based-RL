@@ -35,7 +35,6 @@ def mj_torch_block_factory(agent, mode):
                 ctx.data_snapshot = agent.data_snapshot
                 ctx.reward = agent.reward
                 ctx.next_state = agent.next_state
-                #ctx.step_idx = agent.step_idx
                 return torch.Tensor([agent.reward]).double()
 
             else:
@@ -44,32 +43,45 @@ def mj_torch_block_factory(agent, mode):
         @staticmethod
         def backward(ctx, grad_output):
 
+            if agent.cfg.MODEL.POLICY.PRIORITISE:
+                weight = agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS - ctx.data_snapshot.step_idx.value
+            else:
+                weight = 1 / (agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS - ctx.data_snapshot.step_idx.value)
+
             # We should need to calculate gradients only once per dynamics/reward cycle
             if mode == "dynamics":
-                #tmp = grad_output
-                #if agent.previous_grad_output is None:
-                #    agent.previous_grad_output = tmp
-                #else:
-                #    grad_output -= agent.previous_grad_output
-                #agent.previous_grad_output = tmp
-                state_jacobian = 1.0*torch.from_numpy(agent.dynamics_gradients["state"])
-                #th = 1/(200-agent.step_idx)
-                action_jacobian = 1.0*torch.from_numpy(agent.dynamics_gradients["action"])
+
+                state_jacobian = torch.from_numpy(agent.dynamics_gradients["state"])
+                action_jacobian = torch.from_numpy(agent.dynamics_gradients["action"])
+
+                if agent.cfg.MODEL.POLICY.PRIORITISE:
+                    action_jacobian = (1.0 / agent.running_sum) * action_jacobian
+                else:
+                    action_jacobian = weight * action_jacobian
+                    #pass
 
             elif mode == "reward":
-                #agent.unwrapped.step_idx = ctx.step_idx
-                #print("step_idx in mujoco: {}".format(agent.unwrapped.step_idx))
+
+                if agent.cfg.MODEL.POLICY.PRIORITISE:
+                    agent.running_sum += weight
+
+                # Calculate gradients, "reward" is always called first
                 mj_gradients(ctx.data_snapshot, ctx.next_state, ctx.reward, test=True)
-                state_jacobian = 1.0*torch.from_numpy(agent.reward_gradients["state"])
-                action_jacobian = 1.0*torch.from_numpy(agent.reward_gradients["action"])
+                state_jacobian = torch.from_numpy(agent.reward_gradients["state"])
+                action_jacobian = torch.from_numpy(agent.reward_gradients["action"])
+
+                if agent.cfg.MODEL.POLICY.PRIORITISE:
+                    state_jacobian = (weight - 1) * state_jacobian
+                    action_jacobian = (weight / agent.running_sum) * action_jacobian
+                else:
+                    #pass
+                    action_jacobian = weight * action_jacobian
 
             else:
                 raise TypeError("mode has to be 'dynamics' or 'reward'")
 
-            weight = 1/(agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS - ctx.data_snapshot.step_idx.value)
-
-            if False:
-                torch.set_printoptions(precision=3, sci_mode=False)
+            if True:
+                torch.set_printoptions(precision=5, sci_mode=False)
                 print("{} {}".format(ctx.data_snapshot.time, mode))
                 print("grad_output")
                 print(grad_output)
@@ -84,13 +96,10 @@ def mj_torch_block_factory(agent, mode):
                 print('weight: {} ---- 1/({} - {})'.format(weight, agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS, ctx.data_snapshot.step_idx))
                 print("")
 
-            #t = 2
             ds = torch.matmul(grad_output, state_jacobian)
-            #ds = torch.max(torch.min(ds, torch.DoubleTensor([t])), torch.DoubleTensor([-t]))
             da = torch.matmul(grad_output, action_jacobian)
-            #da = torch.max(torch.min(da, torch.DoubleTensor([t])), torch.DoubleTensor([-t]))
 
-            return 0.99*ds, weight*da
+            return ds, da
 
     return MjBlock
 
