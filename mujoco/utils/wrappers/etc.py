@@ -102,6 +102,8 @@ class SnapshotWrapper(gym.Wrapper):
                 self.qacc_warmstart = deepcopy(d_source.qacc_warmstart)
                 self.ctrl = deepcopy(d_source.ctrl)
                 self.act = deepcopy(d_source.act)
+                self.qfrc_applied = deepcopy(d_source.qfrc_applied)
+                self.xfrc_applied = deepcopy(d_source.xfrc_applied)
 
                 self.step_idx = deepcopy(step_idx)
 
@@ -120,6 +122,8 @@ class SnapshotWrapper(gym.Wrapper):
         self.env.sim.data.ctrl[:] = deepcopy(snapshot_data.ctrl)
         if snapshot_data.act is not None:
             self.env.sim.data.act[:] = deepcopy(snapshot_data.act)
+        self.env.sim.data.qfrc_applied[:] = deepcopy(snapshot_data.qfrc_applied)
+        self.env.sim.data.xfrc_applied[:] = deepcopy(snapshot_data.xfrc_applied)
 
         self.set_step_idx(snapshot_data.step_idx)
 
@@ -184,12 +188,6 @@ class ViewerWrapper(gym.Wrapper):
 
     def __init__(self, env):
         super(ViewerWrapper, self).__init__(env)
-
-        if not self.cfg.LOG.TESTING.RECORD_VIDEO:
-            # Initialise a MjViewer
-            self._viewer = mujoco_py.MjViewer(self.sim)
-            self._viewer._run_speed = 1/self.cfg.MODEL.FRAME_SKIP
-            self.unwrapped._viewers["human"] = self._viewer
 
         # Keep params in this class to reduce clutter
         class Recorder:
