@@ -5,6 +5,7 @@ import numpy as np
 from model.config import get_cfg_defaults
 from mujoco import build_agent
 from utils.index import Index
+from model import build_model
 
 class TestGradients(unittest.TestCase):
 
@@ -78,7 +79,7 @@ class TestGradients(unittest.TestCase):
         # Run multiple times with different sigma for generating action values
         N = 100
         sigma = np.linspace(1e-2, 1e1, N)
-        cfg_file = "/home/aleksi/Workspace/Model-Based-RL/configs/leg.yaml"
+        cfg_file = "/home/aleksi/Workspace/Model-Based-RL/configs/swimmer.yaml"
 
         for s in sigma:
             self.run_reward_test(cfg_file, s)
@@ -90,6 +91,10 @@ class TestGradients(unittest.TestCase):
         agent = build_agent(cfg)
         mj_forward_fn = agent.forward_factory("dynamics")
         mj_gradients_fn = agent.gradient_factory("reward")
+
+        model = build_model(cfg, agent)
+        device = torch.device(cfg.MODEL.DEVICE)
+        model.to(device)
 
         # Start from the same state with constant action, make sure reward is equal in both repetitions
 
