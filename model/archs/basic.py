@@ -19,6 +19,9 @@ class Basic(nn.Module):
         # build policy net
         self.policy_net = build_policy(cfg, self.agent)
 
+        # Make sure unwrapped agent can call policy_net
+        self.agent.unwrapped.policy_net = self.policy_net
+
         # build forward dynamics block
         self.dynamics_block = mj_torch_block_factory(agent, 'dynamics').apply
         self.reward_block = mj_torch_block_factory(agent, 'reward').apply
