@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 import os
-from gym.wrappers.monitoring.video_recorder import VideoRecorder
 
 from model.engine.tester import do_testing
 import utils.logger as lg
@@ -33,7 +32,7 @@ def do_training(
     if cfg.LOG.PLOT.ENABLED:
         visdom = VisdomLogger(cfg.LOG.PLOT.DISPLAY_PORT)
         visdom.register_keys(['total_loss', 'average_sd', 'average_action', "reinforce_loss",
-                              "objective_loss", "sd", "action_grad", "sd_grad"])
+                              "objective_loss", "sd", "action_grad", "sd_grad", "average_grad"])
         for action_idx in range(model.policy_net.action_dim):
             visdom.register_keys(["action_" + str(action_idx)])
 
@@ -52,13 +51,17 @@ def do_training(
 
         for episode_idx in range(cfg.MODEL.BATCH_SIZE):
 
-            state = torch.DoubleTensor(agent.reset())
+            initial_state = torch.DoubleTensor(agent.reset())
+            states = []
+            states.append(initial_state)
             for step_idx in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
-                state, reward = model(state)
+                state, reward = model(states[step_idx])
                 batch_loss[episode_idx, step_idx] = -reward
+                states.append(state)
                 #if agent.is_done:
                 #    break
 
+        agent.running_sum = 0
         loss = model.policy_net.optimize(batch_loss)
         output["objective_loss"].append(loss["objective_loss"])
         output["epoch"].append(epoch_idx)
@@ -72,6 +75,8 @@ def do_training(
                 clamped_sd = model.policy_net.get_clamped_sd()
                 clamped_action = model.policy_net.get_clamped_action()
 
+                #visdom.update({'average_grad': np.log(torch.mean(model.policy_net.mean._layers["linear_layer_0"].weight.grad.abs()).detach().numpy())})
+
                 if len(clamped_sd) > 0:
                     visdom.update({'average_sd': np.mean(clamped_sd, axis=1)})
                 visdom.update({'average_action': np.mean(clamped_action, axis=(1, 2)).squeeze()})
@@ -80,6 +85,7 @@ def do_training(
                     visdom.set({'action_'+str(action_idx): clamped_action[action_idx, :, :]})
                 if clamped_sd is not None:
                     visdom.set({'sd': clamped_sd.transpose()})
+#                visdom.set({'action_grad': model.policy_net.mean.grad.detach().numpy().transpose()})
 
             logger.info("REWARD: \t\t{} (iteration {})".format(loss["objective_loss"], epoch_idx))
 
