@@ -525,7 +525,11 @@ class Perttu(BaseStrategy):
                 for ep_idx, ep_actions in enumerate(samples):
                     self.actions[:, :, ep_idx] = torch.reshape(ep_actions, (self.action_dim, self.horizon))
             else:
-                self.actions = self.optimizer.ask().permute(1, 2, 0)
+                #self.actions = self.optimizer.ask()
+                samples = self.optimizer.ask()
+                self.actions = torch.empty(self.action_dim, self.horizon, self.batch_size)
+                for ep_idx, ep_actions in enumerate(samples):
+                    self.actions[:, :, ep_idx] = torch.reshape(ep_actions, (self.action_dim, self.horizon))
 
         # Get action
         action = self.actions[:, self.step_idx, self.episode_idx-1]
@@ -537,7 +541,7 @@ class Perttu(BaseStrategy):
         return {"objective_loss": float(meanFval), "total_loss": float(loss)}
 
     def get_clamped_sd(self):
-        return self.optimizer.getClampedSd().detach().numpy()
+        return self.optimizer.getClampedSd().reshape([self.optimizer.original_dim, self.optimizer.steps]).detach().numpy()
 
     def get_clamped_action(self):
         return self.actions.detach().numpy()
