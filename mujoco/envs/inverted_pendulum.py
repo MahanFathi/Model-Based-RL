@@ -14,10 +14,11 @@ class InvertedPendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         * torch implementation of reward function
     """
 
-    def __init__(self):
+    def __init__(self, cfg):
         utils.EzPickle.__init__(self)
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
         mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "inverted_pendulum.xml"), 2)
+        self.cfg = cfg
 
     def step(self, a):
         """DIFFERENT FROM ORIGINAL GYM"""
@@ -31,7 +32,7 @@ class InvertedPendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         dist_penalty = 0.01 * x ** 2 + (y - 1) ** 2
         v = ob[3]
         vel_penalty = 1e-3 * v ** 2
-        reward = -dist_penalty - np.abs(a)
+        reward = -dist_penalty# - np.abs(a)
         notdone = np.isfinite(ob).all() and (np.abs(ob[1]) <= .2)
         done = not notdone
         return ob, reward, done, {}
