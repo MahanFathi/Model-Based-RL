@@ -3,17 +3,17 @@ MUJOCO:
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
-  BATCH_SIZE: 1
+  BATCH_SIZE: 10
   POLICY:
-    MAX_HORIZON_STEPS: 100
-    ARCH: 'VariationalOptimization'
-    METHOD: 'R'
+    MAX_HORIZON_STEPS: 50
+    ARCH: 'Perttu'
+    METHOD: 'R-VO'
     LAYERS:
       - 128
       - 128
     GAMMA: 0.99
     INITIAL_LOG_SD: -1.0
-    INITIAL_SD: 0.25
+    INITIAL_SD: 0.1
     INITIAL_ACTION_MEAN: 0.0
     INITIAL_ACTION_SD: 0.0
     PRIORITISE: False
