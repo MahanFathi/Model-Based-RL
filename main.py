@@ -3,8 +3,11 @@ import os
 from datetime import datetime
 
 from model.engine.trainer import do_training
+import model.engine.trainer
+import model.engine.dynamics_model_trainer
 from model.config import get_cfg_defaults
 import utils.logger as lg
+
 
 def train(cfg, iter):
 
@@ -25,14 +28,43 @@ def train(cfg, iter):
     logger.info("Running with config:\n{}".format(cfg))
 
     # Repeat for required number of iterations
-    for _ in range(iter):
-        do_training(
+    for i in range(iter):
+        model.engine.trainer.do_training(
             cfg,
             logger,
             output_results_dir,
             output_rec_dir,
-            output_weights_dir
+            output_weights_dir,
+            i
         )
+
+
+def train_dynamics_model(cfg, iter):
+
+    # Create output directories
+    env_output_dir = os.path.join(cfg.OUTPUT.DIR, cfg.MUJOCO.ENV)
+    output_dir = os.path.join(env_output_dir, "{0:%Y-%m-%d %H:%M:%S}".format(datetime.now()))
+    output_rec_dir = os.path.join(output_dir, 'recordings')
+    output_weights_dir = os.path.join(output_dir, 'weights')
+    output_results_dir = os.path.join(output_dir, 'results')
+    os.makedirs(output_dir)
+    os.mkdir(output_weights_dir)
+    os.mkdir(output_results_dir)
+    if cfg.LOG.TESTING.ENABLED:
+        os.mkdir(output_rec_dir)
+
+    # Create logger
+    logger = lg.setup_logger("model.engine.dynamics_model_trainer", output_dir, 'logs')
+    logger.info("Running with config:\n{}".format(cfg))
+
+    # Train the dynamics model
+    model.engine.dynamics_model_trainer.do_training(
+        cfg,
+        logger,
+        output_results_dir,
+        output_rec_dir,
+        output_weights_dir
+    )
 
 
 def inference(cfg):
@@ -52,7 +84,7 @@ def main():
         "--mode",
         default="train",
         metavar="mode",
-        help="'train' or 'test'",
+        help="'train' or 'test' or 'dynamics'",
         type=str,
     )
     parser.add_argument(
@@ -79,6 +111,8 @@ def main():
     # TRAIN
     if args.mode == "train":
         train(cfg, args.iter)
+    elif args.mode == "dynamics":
+        train_dynamics_model(cfg, args.iter)
 
 
 if __name__ == "__main__":
