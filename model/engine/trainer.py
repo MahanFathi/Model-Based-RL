@@ -9,13 +9,13 @@ from mujoco import build_agent
 from model import build_model
 
 
-
 def do_training(
         cfg,
         logger,
         output_results_dir,
         output_rec_dir,
-        output_weights_dir
+        output_weights_dir,
+        iter
 ):
     # Build the agent
     agent = build_agent(cfg)
@@ -42,7 +42,7 @@ def do_training(
             visdom.register_keys(['test_reward'])
 
     # Collect losses here
-    output = {"epoch": [], "objective_loss": []}
+    output = {"epoch": [], "objective_loss": [], "average_sd": []}
 
     # Start training
     for epoch_idx in range(cfg.MODEL.EPOCHS):
@@ -79,6 +79,7 @@ def do_training(
 
                 if len(clamped_sd) > 0:
                     visdom.update({'average_sd': np.mean(clamped_sd, axis=1)})
+                    output["average_sd"].append(np.mean(clamped_sd))
                 visdom.update({'average_action': np.mean(clamped_action, axis=(1, 2)).squeeze()})
 
                 for action_idx in range(model.policy_net.action_dim):
@@ -100,7 +101,7 @@ def do_training(
             if epoch_idx % cfg.LOG.TESTING.ITER_PERIOD == 0:
 
                 # Record if required
-                agent.start_recording(os.path.join(output_rec_dir, "iter_{}.mp4".format(epoch_idx)))
+                agent.start_recording(os.path.join(output_rec_dir, "iter_{}_{}.mp4".format(iter, epoch_idx)))
 
                 test_rewards = []
                 for _ in range(cfg.LOG.TESTING.COUNT_PER_ITER):
@@ -119,4 +120,4 @@ def do_training(
                 agent.stop_recording()
 
     # Save outputs into log folder
-    lg.save_dict_into_csv(output_results_dir, "output", output)
+    lg.save_dict_into_csv(output_results_dir, "output_{}".format(iter), output)
