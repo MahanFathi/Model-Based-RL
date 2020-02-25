@@ -80,7 +80,7 @@ def mj_torch_block_factory(agent, mode):
             else:
                 raise TypeError("mode has to be 'dynamics' or 'reward'")
 
-            if True:
+            if False:
                 torch.set_printoptions(precision=5, sci_mode=False)
                 print("{} {}".format(ctx.data_snapshot.time, mode))
                 print("grad_output")
