@@ -65,6 +65,7 @@ def do_training(
         loss = model.policy_net.optimize(batch_loss)
         output["objective_loss"].append(loss["objective_loss"])
         output["epoch"].append(epoch_idx)
+        output["average_sd"].append(np.mean(model.policy_net.get_clamped_sd()))
 
         if epoch_idx % cfg.LOG.PERIOD == 0:
 
@@ -79,7 +80,6 @@ def do_training(
 
                 if len(clamped_sd) > 0:
                     visdom.update({'average_sd': np.mean(clamped_sd, axis=1)})
-                    output["average_sd"].append(np.mean(clamped_sd))
                 visdom.update({'average_action': np.mean(clamped_action, axis=(1, 2)).squeeze()})
 
                 for action_idx in range(model.policy_net.action_dim):
