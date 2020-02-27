@@ -1,22 +1,32 @@
 MUJOCO:
   ENV: 'HalfCheetahEnv'
-  GAMMA: 0.98
   CLIP_ACTIONS: false
 MODEL:
   META_ARCHITECTURE: 'Basic'
+  BATCH_SIZE: 1
+  FRAME_SKIP: 10
+  EPOCHS: 1000
   POLICY:
-    MAX_HORIZON_STEPS: 50
-    ARCH: 'StochasticPolicy'
+    ARCH: 'Perttu'
+    METHOD: 'Grad'
+    NETWORK: False
+    MAX_HORIZON_STEPS: 40
     LAYERS:
-      - 64
-      - 32
-      - 16
-      - 16
-      - 8
-    STD_SCALER: 1.0
+      - 128
+      - 128
+    GAMMA: 0.99
+    INITIAL_LOG_SD: -0.5
+    INITIAL_SD: 0.1
+    INITIAL_ACTION_MEAN: 0.0
+    INITIAL_ACTION_SD: 0.1
+    PRIORITISE: True
 SOLVER:
-  BASE_LR: 0.01
-  WEIGHT_DECAY: 0.001
-  BIAS_LR_FACTOR: 2
-  STD_LR_FACTOR: 0.5
-  BATCH_SIZE: 16
+  BASE_LR: 0.001
+  WEIGHT_DECAY: 0.0
+  BIAS_LR_FACTOR: 1
+  STD_LR_FACTOR: 1.0
+  ADAM_BETAS: (0.9, 0.999)
+LOG:
+  TESTING:
+    ITER_PERIOD: 50
+    RECORD_VIDEO: False

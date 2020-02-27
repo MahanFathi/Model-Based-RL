@@ -12,9 +12,11 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         * FULL STATE OBSERVATIONS, I.E. QPOS CONCAT'D WITH QVEL.
         * is_done METHOD SHOULD BE IMPLEMENTED
     """
-    def __init__(self):
+    def __init__(self, cfg):
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
-        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "half_cheetah.xml"), 4)
+        self.cfg = cfg
+        self.frame_skip = self.cfg.MODEL.FRAME_SKIP
+        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "half_cheetah.xml"), self.frame_skip)
         utils.EzPickle.__init__(self)
 
     def step(self, action):
@@ -36,9 +38,14 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         ])
 
     def reset_model(self):
-        qpos = self.init_qpos + self.np_random.uniform(low=-.1, high=.1, size=self.model.nq)
-        qvel = self.init_qvel + self.np_random.randn(self.model.nv) * .1
-        self.set_state(qpos, qvel)
+        self.sim.reset()
+        if self.cfg.MODEL.POLICY.NETWORK:
+            self.set_state(
+                self.init_qpos + self.np_random.uniform(low=-.1, high=.1, size=self.model.nq),
+                self.init_qvel + self.np_random.randn(self.model.nv) * .1
+            )
+        else:
+            self.set_state(self.init_qpos, self.init_qvel)
         return self._get_obs()
 
     def viewer_setup(self):
