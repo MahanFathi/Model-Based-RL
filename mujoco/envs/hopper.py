@@ -14,10 +14,14 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         * torch implementation of reward function
     """
 
-    def __init__(self):
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.frame_skip = self.cfg.MODEL.FRAME_SKIP
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
-        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "hopper.xml"), 4)
+        self.initialised = False
+        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "hopper.xml"), self.frame_skip)
         utils.EzPickle.__init__(self)
+        self.initialised = True
 
     def step(self, a):
         posbefore = self.sim.data.qpos[0]
@@ -29,7 +33,9 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         reward -= 1e-3 * np.square(a).sum()
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
-                    (height > .7) and (abs(ang) < .2))
+                    (height > .7) and (abs(ang) < .2)) and self.initialised
+        #done = not (np.isfinite(s).all().all() and
+        #            (height > .7)) and self.initialised
         ob = self._get_obs()
         return ob, reward, done, {}
 
@@ -41,6 +47,7 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         ])
 
     def reset_model(self):
+        self.sim.reset()
         #qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
         #qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
         #self.set_state(qpos, qvel)
