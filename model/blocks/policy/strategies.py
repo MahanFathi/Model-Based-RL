@@ -509,7 +509,7 @@ class Perttu(BaseStrategy):
                                                    self.cfg.MODEL.POLICY.INITIAL_ACTION_SD,
                                                    (self.action_dim, self.horizon)),
                       initialSd=self.cfg.MODEL.POLICY.INITIAL_SD*np.ones((self.action_dim, self.horizon)),
-                      #initialSd=0.2*np.ones((1,1)),
+                      #initialSd=self.cfg.MODEL.POLICY.INITIAL_SD*np.ones((1, 1)),
                       learningRate=self.cfg.SOLVER.BASE_LR,
                       adamBetas=(0.9, 0.99),
                       minReinforceLossWeight=0.0,
@@ -518,21 +518,24 @@ class Perttu(BaseStrategy):
     def forward(self, state):
 
         # If we've hit the end of minibatch we need to sample more actions
-        if self.step_idx == 0 and self.episode_idx-1 == 0 and self.training:
-            if self.method == "CMA-ES":
-                samples = self.optimizer.ask()
-                self.actions = torch.empty(self.action_dim, self.horizon, self.batch_size)
-                for ep_idx, ep_actions in enumerate(samples):
-                    self.actions[:, :, ep_idx] = torch.reshape(ep_actions, (self.action_dim, self.horizon))
-            else:
-                #self.actions = self.optimizer.ask()
+        if self.training:
+            if self.step_idx == 0 and self.episode_idx-1 == 0:
                 samples = self.optimizer.ask()
                 self.actions = torch.empty(self.action_dim, self.horizon, self.batch_size)
                 for ep_idx, ep_actions in enumerate(samples):
                     self.actions[:, :, ep_idx] = torch.reshape(ep_actions, (self.action_dim, self.horizon))
 
-        # Get action
-        action = self.actions[:, self.step_idx, self.episode_idx-1]
+            # Get action
+            action = self.actions[:, self.step_idx, self.episode_idx-1]
+
+        else:
+            if self.step_idx == 0:
+                samples = self.optimizer.ask(testing=~self.training)
+                for ep_idx, ep_actions in enumerate(samples):
+                    self.actions[:, :, ep_idx] = torch.reshape(ep_actions, (self.action_dim, self.horizon))
+
+            # Get action
+            action = self.actions[:, self.step_idx, 0]
 
         return action.double()
 
