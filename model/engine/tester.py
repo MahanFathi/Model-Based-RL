@@ -30,6 +30,6 @@ def do_testing(
             #state, reward = model(state, samples[:, step_idx])
             state, reward = model(state)
             reward_sum += reward
-            #if agent.is_done:
-            #     break
+            if agent.is_done:
+                break
         return reward_sum/episode_iteration

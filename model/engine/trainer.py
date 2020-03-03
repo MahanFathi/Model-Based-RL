@@ -58,8 +58,8 @@ def do_training(
                 state, reward = model(states[step_idx])
                 batch_loss[episode_idx, step_idx] = -reward
                 states.append(state)
-                #if agent.is_done:
-                #    break
+                if agent.is_done:
+                    break
 
         agent.running_sum = 0
         loss = model.policy_net.optimize(batch_loss)
