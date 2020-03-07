@@ -513,7 +513,8 @@ class Perttu(BaseStrategy):
                       learningRate=self.cfg.SOLVER.BASE_LR,
                       adamBetas=(0.9, 0.99),
                       minReinforceLossWeight=0.0,
-                      nBatch=self.cfg.MODEL.BATCH_SIZE)
+                      nBatch=self.cfg.MODEL.BATCH_SIZE,
+                      solver=self.cfg.SOLVER.OPTIMIZER)
 
     def forward(self, state):
 

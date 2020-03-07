@@ -36,11 +36,12 @@ _C.MODEL.POLICY.INITIAL_LOG_SD = 0.0
 _C.MODEL.POLICY.INITIAL_SD = 0.0
 _C.MODEL.POLICY.INITIAL_ACTION_MEAN = 0.0
 _C.MODEL.POLICY.INITIAL_ACTION_SD = 0.1
-_C.MODEL.POLICY.PRIORITISE = False
+_C.MODEL.POLICY.GRAD_WEIGHTS = 'average'
 _C.MODEL.POLICY.NETWORK = False
 _C.MODEL.NSTEPS_FOR_BACKWARD = 1
 _C.MODEL.FRAME_SKIP = 1
 _C.MODEL.TIMESTEP = 0.0
+_C.MODEL.RANDOM_SEED = 0
 
 # ---------------------------------------------------------------------------- #
 # Model Configs
@@ -65,6 +66,7 @@ _C.EXPERIENCE_REPLAY.ENV_INIT_STATE_NUM = 2 ** 15 * 3 / 4
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 
+_C.SOLVER.OPTIMIZER = 'adam'
 _C.SOLVER.BASE_LR = 0.001
 _C.SOLVER.STD_LR_FACTOR = 0.001
 _C.SOLVER.BIAS_LR_FACTOR = 2

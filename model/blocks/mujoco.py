@@ -43,7 +43,7 @@ def mj_torch_block_factory(agent, mode):
         @staticmethod
         def backward(ctx, grad_output):
 
-            if agent.cfg.MODEL.POLICY.PRIORITISE:
+            if agent.cfg.MODEL.POLICY.GRAD_WEIGHTS == "prioritise":
                 weight = agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS - ctx.data_snapshot.step_idx.value
             else:
                 weight = 1 / (agent.cfg.MODEL.POLICY.MAX_HORIZON_STEPS - ctx.data_snapshot.step_idx.value)
@@ -54,15 +54,14 @@ def mj_torch_block_factory(agent, mode):
                 state_jacobian = torch.from_numpy(agent.dynamics_gradients["state"])
                 action_jacobian = torch.from_numpy(agent.dynamics_gradients["action"])
 
-                if agent.cfg.MODEL.POLICY.PRIORITISE:
+                if agent.cfg.MODEL.POLICY.GRAD_WEIGHTS == "prioritise":
                     action_jacobian = (1.0 / agent.running_sum) * action_jacobian
-                else:
+                elif agent.cfg.MODEL.POLICY.GRAD_WEIGHTS == "average":
                     action_jacobian = weight * action_jacobian
-                    #pass
 
             elif mode == "reward":
 
-                if agent.cfg.MODEL.POLICY.PRIORITISE:
+                if agent.cfg.MODEL.POLICY.GRAD_WEIGHTS == "prioritise":
                     agent.running_sum += weight
 
                 # Calculate gradients, "reward" is always called first
@@ -70,11 +69,10 @@ def mj_torch_block_factory(agent, mode):
                 state_jacobian = torch.from_numpy(agent.reward_gradients["state"])
                 action_jacobian = torch.from_numpy(agent.reward_gradients["action"])
 
-                if agent.cfg.MODEL.POLICY.PRIORITISE:
+                if agent.cfg.MODEL.POLICY.GRAD_WEIGHTS == "prioritise":
                     state_jacobian = (weight - 1) * state_jacobian
                     action_jacobian = (weight / agent.running_sum) * action_jacobian
-                else:
-                    #pass
+                elif agent.cfg.MODEL.POLICY.GRAD_WEIGHTS == "average":
                     action_jacobian = weight * action_jacobian
 
             else:
@@ -98,6 +96,10 @@ def mj_torch_block_factory(agent, mode):
 
             ds = torch.matmul(grad_output, state_jacobian)
             da = torch.matmul(grad_output, action_jacobian)
+
+            #threshold = 5
+            #ds.clamp_(-threshold, threshold)
+            #da.clamp_(-threshold, threshold)
 
             return ds, da
 

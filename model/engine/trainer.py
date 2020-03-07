@@ -17,6 +17,11 @@ def do_training(
         output_weights_dir,
         iter
 ):
+
+    if cfg.MODEL.RANDOM_SEED > 0:
+        np.random.seed(cfg.MODEL.RANDOM_SEED + iter)
+        torch.manual_seed(cfg.MODEL.RANDOM_SEED + iter)
+
     # Build the agent
     agent = build_agent(cfg)
 
@@ -54,15 +59,31 @@ def do_training(
             initial_state = torch.DoubleTensor(agent.reset())
             states = []
             states.append(initial_state)
+            #grads = np.zeros((cfg.MODEL.POLICY.MAX_HORIZON_STEPS, 120))
             for step_idx in range(cfg.MODEL.POLICY.MAX_HORIZON_STEPS):
                 state, reward = model(states[step_idx])
                 batch_loss[episode_idx, step_idx] = -reward
+                #(-reward).backward(retain_graph=True)
+                #grads[step_idx, :] = model.policy_net.optimizer.mean.grad.detach().numpy()
+                #grads[step_idx, step_idx+1:40] = np.nan
+                #grads[step_idx, 40+step_idx+1:80] = np.nan
+                #grads[step_idx, 80+step_idx+1:] = np.nan
+                #model.policy_net.optimizer.optimizer.zero_grad()
                 states.append(state)
                 if agent.is_done:
                     break
 
         agent.running_sum = 0
         loss = model.policy_net.optimize(batch_loss)
+        #zero = np.abs(grads) < 1e-9
+        #grads[zero] = np.nan
+        #medians = np.nanmedian(grads, axis=0)
+        #model.policy_net.optimizer.mean.grad.data = torch.from_numpy(medians)
+        #torch.nn.utils.clip_grad_value_([model.policy_net.optimizer.mean, model.policy_net.optimizer.sd], 1)
+        #model.policy_net.optimizer.optimizer.step()
+        #model.policy_net.optimizer.optimizer.zero_grad()
+        #loss = {'objective_loss': torch.sum(batch_loss, dim=1).mean().detach().numpy()}
+
         output["objective_loss"].append(loss["objective_loss"])
         output["epoch"].append(epoch_idx)
         output["average_sd"].append(np.mean(model.policy_net.get_clamped_sd()))
