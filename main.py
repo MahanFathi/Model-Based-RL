@@ -13,7 +13,11 @@ def train(cfg, iter):
 
     # Create output directories
     env_output_dir = os.path.join(cfg.OUTPUT.DIR, cfg.MUJOCO.ENV)
-    output_dir = os.path.join(env_output_dir, "{0:%Y-%m-%d %H:%M:%S}".format(datetime.now()))
+    if cfg.OUTPUT.NAME == "timestamp":
+        output_dir_name = "{0:%Y-%m-%d %H:%M:%S}".format(datetime.now())
+    else:
+        output_dir_name = cfg.OUTPUT.NAME
+    output_dir = os.path.join(env_output_dir, output_dir_name)
     output_rec_dir = os.path.join(output_dir, 'recordings')
     output_weights_dir = os.path.join(output_dir, 'weights')
     output_results_dir = os.path.join(output_dir, 'results')
