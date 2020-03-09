@@ -24,15 +24,20 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         utils.EzPickle.__init__(self)
         self.initialised = True
 
+    def sigmoid(self, x, mi, mx): return mi + (mx - mi) * (lambda t: (1 + 200 ** (-t + 0.5)) ** (-1))((x - mi) / (mx - mi))
+
     def step(self, a):
         posbefore = self.sim.data.qpos[0]
         self.do_simulation(a, self.frame_skip)
         posafter, height, ang = self.sim.data.qpos[0:3]
         alive_bonus = 1.0
         reward = (posafter - posbefore) / self.dt
-        coeff = min(max(height/1.25, 0), 1)*0.5 + max(((math.pi - abs(ang))/math.pi), 1)*0.5
-        reward += coeff * alive_bonus
-        #reward += alive_bonus
+        ang_abs = abs(ang) % (2*math.pi)
+        if ang_abs > math.pi:
+            ang_abs = 2*math.pi - ang_abs
+        coeff1 = self.sigmoid(height/1.25, 0, 1)
+        coeff2 = self.sigmoid((math.pi - ang_abs)/math.pi, 0, 1)
+        reward += coeff1 * alive_bonus + coeff2 * alive_bonus
         #reward -= 1e-3 * np.square(a).sum()
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
