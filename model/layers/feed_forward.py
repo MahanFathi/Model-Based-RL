@@ -81,15 +81,19 @@ class Variational(nn.Module):
 
     def reset_parameters(self):
         init.kaiming_uniform_(self.weight_mean, a=math.sqrt(5))
-        init.constant_(self.weight_std, 0.01)
+        init.constant_(self.weight_std, 0.03)
         if self.bias_mean is not None:
             fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight_mean)
             bound = 1 / math.sqrt(fan_in)
             init.uniform_(self.bias_mean, -bound, bound)
-            init.constant_(self.bias_std, 0.01)
+            init.constant_(self.bias_std, 0.03)
 
     def forward(self, input):
+        neg_weight = self.weight_std.data < 0
+        self.weight_std.data[neg_weight] = 0.00001
         weight = torch.distributions.Normal(self.weight_mean, self.weight_std).rsample()
+        neg_bias = self.bias_std.data < 0
+        self.bias_std.data[neg_bias] = 0.00001
         bias = torch.distributions.Normal(self.bias_mean, self.bias_std).rsample()
         return functional.linear(input, weight, bias)
 
