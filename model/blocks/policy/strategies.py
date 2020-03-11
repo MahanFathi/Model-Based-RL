@@ -35,6 +35,7 @@ class BaseStrategy(ABC, nn.Module):
         self.min_sd = min_sd
         self.soft_relu_beta = soft_relu_beta
         self.best_actions = []
+        self.sd_threshold = 0.0001
 
         # Set loss parameters
         self.gamma = cfg.MODEL.POLICY.GAMMA
@@ -82,7 +83,8 @@ class BaseStrategy(ABC, nn.Module):
     def clamp_sd(self, sd):
         #return torch.max(sd, 0.001*torch.ones(sd.shape, dtype=torch.double))
         #return torch.exp(sd)
-        return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
+        #return self.min_sd + self.soft_relu(sd - self.min_sd, self.soft_relu_beta)
+        return sd
 
     def clamp_action(self, action):
         #return self.soft_relu(action, self.soft_relu_beta)
@@ -186,6 +188,8 @@ class BaseStrategy(ABC, nn.Module):
         #    nans = torch.isnan(episode_loss)
         #    fvals[episode_idx] = torch.sum(episode_loss[nans == False])
 
+        nans = torch.isnan(batch_loss)
+        batch_loss[nans] = 0
 
         if stepwise_loss:
             return torch.mean(batch_loss, dim=0)
@@ -312,13 +316,8 @@ class BaseStrategy(ABC, nn.Module):
         self.optimizer.zero_grad()
         loss.backward()
         #nn.utils.clip_grad_norm_(self.parameters(), 0.1)
-#        print("{} {}".format(self.mean._layers["linear_layer_0"].weight.grad.min(),
-#                                self.mean._layers["linear_layer_0"].weight.grad.max()))
-#        print("{} {}".format(self.mean._layers["linear_layer_1"].weight.grad.min(),
-#                                self.mean._layers["linear_layer_1"].weight.grad.max()))
-#        print("{} {}".format(self.mean._layers["linear_layer_2"].weight.grad.min(),
-#                                self.mean._layers["linear_layer_2"].weight.grad.max()))
-        #nn.utils.clip_grad_value_(self.parameters(), 0.3)
+        if self.cfg.SOLVER.OPTIMIZER == "sgd":
+            nn.utils.clip_grad_value_(self.parameters(), 1)
 
         #total_norm_sqr = 0
         #total_norm_sqr += self.mean._layers["linear_layer_0"].weight.grad.norm() ** 2
@@ -340,6 +339,24 @@ class BaseStrategy(ABC, nn.Module):
         #            param.grad = (param.grad * gradient_clip) / (total_norm_sqr ** 0.5)
                     #pass
         self.optimizer.step()
+
+        #print("ll0 weight: {} {}".format(self.mean._layers["linear_layer_0"].weight_std.min(),
+        #                        self.mean._layers["linear_layer_0"].weight_std.max()))
+        #print("ll1 weight: {} {}".format(self.mean._layers["linear_layer_1"].weight_std.min(),
+        #                        self.mean._layers["linear_layer_1"].weight_std.max()))
+        #print("ll2 weight: {} {}".format(self.mean._layers["linear_layer_2"].weight_std.min(),
+        #                        self.mean._layers["linear_layer_2"].weight_std.max()))
+        #print("ll0 bias: {} {}".format(self.mean._layers["linear_layer_0"].bias_std.min(),
+        #                        self.mean._layers["linear_layer_0"].bias_std.max()))
+        #print("ll1 bias: {} {}".format(self.mean._layers["linear_layer_1"].bias_std.min(),
+        #                        self.mean._layers["linear_layer_1"].bias_std.max()))
+        #print("ll2 bias: {} {}".format(self.mean._layers["linear_layer_2"].bias_std.min(),
+        #                        self.mean._layers["linear_layer_2"].bias_std.max()))
+        #print("")
+
+        # Make sure sd is not negative
+        idxs = self.sd < self.sd_threshold
+        self.sd.data[idxs] = self.sd_threshold
 
         # Empty log probs
         self.log_prob = torch.empty(self.batch_size, self.horizon, dtype=torch.float64)
