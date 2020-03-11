@@ -15,10 +15,11 @@ class InvertedPendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     """
 
     def __init__(self, cfg):
+        self.cfg = cfg
+        self.frame_skip = self.cfg.MODEL.FRAME_SKIP
         utils.EzPickle.__init__(self)
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
-        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "inverted_pendulum.xml"), 2)
-        self.cfg = cfg
+        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "inverted_pendulum.xml"), self.frame_skip)
 
     def step(self, a):
         """DIFFERENT FROM ORIGINAL GYM"""
