@@ -14,10 +14,13 @@ class InvertedDoublePendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         * torch implementation of reward function
     """
 
-    def __init__(self):
+    def __init__(self, cfg):
+        self.cfg = cfg
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
-        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "inverted_double_pendulum.xml"), 4)
+        self.initialised = False
+        mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "inverted_double_pendulum.xml"), self.cfg.MODEL.FRAME_SKIP)
         utils.EzPickle.__init__(self)
+        self.initialised = True
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
@@ -29,7 +32,7 @@ class InvertedDoublePendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         alive_bonus = 10
         r = - dist_penalty - vel_penalty
         done = bool(y <= 1)
-        return ob, r, done, {}
+        return ob, r, False, {}
 
     def _get_obs(self):
         """DIFFERENT FROM ORIGINAL GYM"""
@@ -39,6 +42,7 @@ class InvertedDoublePendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         ])
 
     def reset_model(self):
+        self.sim.reset()
         self.set_state(
             self.init_qpos,# + self.np_random.uniform(low=-.1, high=.1, size=self.model.nq),
             self.init_qvel# + self.np_random.randn(self.model.nv) * .1
