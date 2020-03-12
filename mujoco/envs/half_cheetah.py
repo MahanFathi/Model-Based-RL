@@ -16,8 +16,10 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         mujoco_assets_dir = os.path.abspath("./mujoco/assets/")
         self.cfg = cfg
         self.frame_skip = self.cfg.MODEL.FRAME_SKIP
+        self.initialised = False
         mujoco_env.MujocoEnv.__init__(self, os.path.join(mujoco_assets_dir, "half_cheetah.xml"), self.frame_skip)
         utils.EzPickle.__init__(self)
+        self.initialised = True
 
     def step(self, action):
         xposbefore = self.sim.data.qpos[0]
