@@ -5,6 +5,7 @@ from .inverted_pendulum import InvertedPendulumEnv
 from .inverted_double_pendulum import InvertedDoublePendulumEnv
 from .leg import LegEnv
 from .HandModelTSLAdjusted import HandModelTSLAdjustedEnv
+from .walker2d import Walker2dEnv
 
 __all__ = [
     "HopperEnv",
@@ -13,5 +14,6 @@ __all__ = [
     "InvertedPendulumEnv",
     "InvertedDoublePendulumEnv",
     "LegEnv",
-    "HandModelTSLAdjustedEnv"
+    "HandModelTSLAdjustedEnv",
+    "Walker2dEnv"
 ]
