@@ -38,12 +38,10 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         coeff1 = self.sigmoid(height/1.25, 0, 1)
         coeff2 = self.sigmoid((math.pi - ang_abs)/math.pi, 0, 1)
         reward += coeff1 * alive_bonus + coeff2 * alive_bonus
-        #reward -= 1e-3 * np.square(a).sum()
+        reward -= 1e-3 * np.square(a).sum()
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
                     (height > .7) and (abs(ang) < .2)) and self.initialised
-        #done = not (np.isfinite(s).all().all() and
-        #            (height > .7)) and self.initialised
         ob = self._get_obs()
         return ob, reward, False, {}
 
@@ -56,10 +54,12 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def reset_model(self):
         self.sim.reset()
-        #qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
-        #qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
-        #self.set_state(qpos, qvel)
-        self.set_state(self.init_qpos, self.init_qvel)
+        if self.cfg.MODEL.POLICY.NETWORK:
+            qpos = self.init_qpos + self.np_random.uniform(low=-.005, high=.005, size=self.model.nq)
+            qvel = self.init_qvel + self.np_random.uniform(low=-.005, high=.005, size=self.model.nv)
+            self.set_state(qpos, qvel)
+        else:
+            self.set_state(self.init_qpos, self.init_qvel)
         return self._get_obs()
 
     def viewer_setup(self):
