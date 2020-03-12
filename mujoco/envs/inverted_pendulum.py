@@ -30,9 +30,9 @@ class InvertedPendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         y = arm_length * np.cos(theta)
         x = arm_length * np.cos(theta)
         dist_penalty = 0.01 * x ** 2 + (y - 1) ** 2
-        v = ob[3]
-        vel_penalty = 1e-3 * v ** 2
-        reward = -dist_penalty - 0.01*a**2
+        #v = ob[3]
+        #vel_penalty = 1e-3 * v ** 2
+        reward = -dist_penalty - 0.001*(a**2)
         notdone = np.isfinite(ob).all() and (np.abs(ob[1]) <= .2)
         done = not notdone
         return ob, reward, False, {}
@@ -41,7 +41,7 @@ class InvertedPendulumEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         #qpos = self.init_qpos + self.np_random.uniform(size=self.model.nq, low=-0.01, high=0.01)
         #qvel = self.init_qvel + self.np_random.uniform(size=self.model.nv, low=-0.01, high=0.01)
         #self.set_state(qpos, qvel)
-        self.set_state(np.array([0.01, 0.01]), np.array([0.01, 0.01]))
+        self.set_state(np.array([0.0, 0.0]), np.array([0.0, 0.0]))
         return self._get_obs()
 
     def _get_obs(self):
