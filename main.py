@@ -2,11 +2,11 @@ import argparse
 import os
 from datetime import datetime
 
-from model.engine.trainer import do_training
 import model.engine.trainer
 import model.engine.dynamics_model_trainer
 from model.config import get_cfg_defaults
 import utils.logger as lg
+import model.engine.landscape_plot
 
 
 def train(cfg, iter):
@@ -33,7 +33,7 @@ def train(cfg, iter):
 
     # Repeat for required number of iterations
     for i in range(iter):
-        model.engine.trainer.do_training(
+        agent = model.engine.trainer.do_training(
             cfg,
             logger,
             output_results_dir,
@@ -41,6 +41,7 @@ def train(cfg, iter):
             output_weights_dir,
             i
         )
+        model.engine.landscape_plot.visualise2d(agent, output_results_dir, i)
 
 
 def train_dynamics_model(cfg, iter):

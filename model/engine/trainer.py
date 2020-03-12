@@ -142,3 +142,6 @@ def do_training(
 
     # Save outputs into log folder
     lg.save_dict_into_csv(output_results_dir, "output_{}".format(iter), output)
+
+    # Return actions
+    return agent
