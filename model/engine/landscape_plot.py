@@ -17,7 +17,7 @@ def visualise2d(agent, output_dir, iter):
     model.to(device)
 
     # Set mode to test, we're not interested in optimizing the actions now
-    model.train()
+    model.eval()
 
     # Choose two random directions
     i_dir = torch.from_numpy(np.random.randn(actions.shape[0])).detach()
