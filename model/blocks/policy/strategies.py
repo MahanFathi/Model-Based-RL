@@ -550,6 +550,7 @@ class Perttu(BaseStrategy):
             if self.method != "CMA-ES":
                 if self.step_idx == 0:
                     samples = self.optimizer.ask(testing=~self.training)
+                    self.actions = torch.empty(self.action_dim, self.horizon, self.batch_size)
                     for ep_idx, ep_actions in enumerate(samples):
                         self.actions[:, :, ep_idx] = torch.reshape(ep_actions, (self.action_dim, self.horizon))
 
